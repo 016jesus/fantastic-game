@@ -195,5 +195,8 @@ Sprite* Protagonista::barraDeVida()
 
 int Protagonista::ataque(Armas* arma)
 {
+    // Guard: si no hay arma equipada (llamada directa desde el combat loop
+    // sin pasar un objeto Armas), retornamos el daño base de puño.
+    if (!arma) return 20;
     return arma->getDanio();
 }

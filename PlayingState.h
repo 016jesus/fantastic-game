@@ -4,8 +4,10 @@
 #include "IGameState.h"
 #include "protagonista.h"
 #include "MapBackground.h"
+#include "skeleton.h"
 #include <SFML/Graphics.hpp>
 #include <string>
+#include <vector>
 
 class PlayingState : public IGameState {
 public:
@@ -27,10 +29,19 @@ private:
     sf::RectangleShape hpBarFill;
     sf::Text hpText;
 
+    // Enemies
+    std::vector<Skeleton> enemies;
+    bool attackPressed = false;  // true mientras J/Espacio esté pulsado
+
     void handleMovement(float deltaTime);
     void updateHUD();
     void drawHUD(sf::RenderWindow& window);
     void applyGravity(float deltaTime);
+
+    // Enemy / combat helpers
+    void spawnEnemies();
+    void updateCombat(float deltaTime);
+    void drawEnemies(sf::RenderWindow& window);
 
     float groundY = 180.f;   // Y del suelo en coordenadas de mundo
     float velocityY = 0.f;
@@ -38,5 +49,9 @@ private:
     static constexpr float GRAVITY    = 500.f;
     static constexpr float JUMP_FORCE = -300.f;
     static constexpr int   MAX_HP     = 100;
+
+    // Rango de ataque del jugador en píxeles (distancia centro a AABB enemigo)
+    static constexpr float PLAYER_ATTACK_RANGE = 40.f;
+    static constexpr int   PLAYER_ATTACK_DAMAGE = 20;
 };
 #endif

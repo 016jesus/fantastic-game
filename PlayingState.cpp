@@ -1,5 +1,7 @@
 #include "PlayingState.h"
 #include "GameStateManager.h"
+#include <algorithm>
+#include <cmath>
 
 // ---------------------------------------------------------------------------
 // Constructor: inicializa jugador, fondo y HUD
@@ -40,12 +42,12 @@ PlayingState::PlayingState(GameStateManager* gsm, const std::string& playerName)
     pauseHint.setFont(font);
     pauseHint.setCharacterSize(10u);
     pauseHint.setFillColor(sf::Color(200, 200, 200));
-    pauseHint.setString("ESC: pausa");
+    pauseHint.setString("ESC: pausa  J: atacar");
     pauseHint.setPosition(10.f, 30.f);
 }
 
 // ---------------------------------------------------------------------------
-// onEnter: posiciona al jugador al iniciar el estado
+// onEnter: posiciona al jugador al iniciar el estado y genera enemigos
 // ---------------------------------------------------------------------------
 void PlayingState::onEnter() {
     paused    = false;
@@ -57,6 +59,7 @@ void PlayingState::onEnter() {
         player.getSkin()->getSprite()->setPosition(64.f, groundY - 64.f);
     }
 
+    spawnEnemies();
     updateHUD();
 }
 
@@ -92,14 +95,13 @@ void PlayingState::update(float deltaTime) {
 
     handleMovement(deltaTime);
     applyGravity(deltaTime);
+    updateCombat(deltaTime);
     updateHUD();
 }
 
 // ---------------------------------------------------------------------------
 // handleMovement: mueve al jugador con A/D o flechas izquierda/derecha
 // La velocidad del protagonista (getVelocidad()) se usa como píxeles/segundo.
-// NO se llama a player.movimientos() porque esa firma requiere sf::Keyboard*
-// y mezclaría lógica de eventos con real-time input de forma inconsistente.
 // ---------------------------------------------------------------------------
 void PlayingState::handleMovement(float deltaTime) {
     Skins* skin = player.getSkin();
@@ -174,6 +176,91 @@ void PlayingState::applyGravity(float deltaTime) {
 }
 
 // ---------------------------------------------------------------------------
+// spawnEnemies: crea Skeletons en posiciones fijas sobre el suelo
+// ---------------------------------------------------------------------------
+void PlayingState::spawnEnemies() {
+    enemies.clear();
+
+    // Tres skeletons distribuidos en el mapa, posicionados sobre groundY.
+    // HEIGHT del Skeleton es 32px, así que Y = groundY - 32.
+    const float ey = groundY - 32.f;
+    enemies.emplace_back(200.f, ey);
+    enemies.emplace_back(320.f, ey);
+    enemies.emplace_back(400.f, ey);
+}
+
+// ---------------------------------------------------------------------------
+// updateCombat: actualiza IA de enemigos, resuelve daño bidirecional y
+//              elimina los muertos del vector.
+// ---------------------------------------------------------------------------
+void PlayingState::updateCombat(float deltaTime) {
+    // Obtener posición del jugador desde el sprite (fuente de verdad en Play)
+    sf::Vector2f playerSpritePos(0.f, 0.f);
+    float playerHalfW = 0.f;
+    float playerHalfH = 0.f;
+    Skins* playerSkin = player.getSkin();
+    if (playerSkin && playerSkin->getSprite()) {
+        playerSpritePos = playerSkin->getSprite()->getPosition();
+        sf::FloatRect pb = playerSkin->getSprite()->getGlobalBounds();
+        playerHalfW = pb.width  * 0.5f;
+        playerHalfH = pb.height * 0.5f;
+    }
+
+    // Actualizar IA de cada enemigo
+    for (auto& enemy : enemies) {
+        enemy.update(deltaTime, player);
+
+        // --- Enemigo golpea al jugador ---
+        if (enemy.canAttackPlayer(player)) {
+            int newVida = player.getVida() - static_cast<int>(enemy.getAttackDamage());
+            if (newVida < 0) newVida = 0;
+            player.setVida(newVida);
+            enemy.resetAttackCooldown();
+        }
+    }
+
+    // --- Jugador ataca (tecla J) ---
+    bool attackKeyDown = sf::Keyboard::isKeyPressed(sf::Keyboard::J);
+
+    if (attackKeyDown && !attackPressed) {
+        attackPressed = true;
+
+        // Centro aproximado del jugador
+        float px = playerSpritePos.x + playerHalfW;
+        float py = playerSpritePos.y + playerHalfH;
+
+        for (auto& enemy : enemies) {
+            if (enemy.isDead()) continue;
+
+            // Centro del enemigo
+            sf::FloatRect eb = enemy.getBounds();
+            float ex = eb.left + eb.width  * 0.5f;
+            float ey = eb.top  + eb.height * 0.5f;
+
+            float dx = ex - px;
+            float dy = ey - py;
+            float dist = std::sqrt(dx * dx + dy * dy);
+
+            if (dist <= PLAYER_ATTACK_RANGE) {
+                enemy.takeDamage(PLAYER_ATTACK_DAMAGE);
+            }
+        }
+    }
+
+    // Liberar el flag cuando el jugador suelta la tecla
+    if (!attackKeyDown) {
+        attackPressed = false;
+    }
+
+    // Eliminar enemigos muertos del vector
+    enemies.erase(
+        std::remove_if(enemies.begin(), enemies.end(),
+                       [](const Skeleton& e) { return e.isDead(); }),
+        enemies.end()
+    );
+}
+
+// ---------------------------------------------------------------------------
 // updateHUD: ajusta el ancho del fill de la barra HP según la vida actual
 // ---------------------------------------------------------------------------
 void PlayingState::updateHUD() {
@@ -196,10 +283,22 @@ void PlayingState::drawHUD(sf::RenderWindow& window) {
 }
 
 // ---------------------------------------------------------------------------
-// render: fondo → jugador → HUD → overlay de pausa
+// drawEnemies: itera el vector de Skeletons y dibuja cada uno
+// ---------------------------------------------------------------------------
+void PlayingState::drawEnemies(sf::RenderWindow& window) {
+    for (auto& enemy : enemies) {
+        enemy.draw(window);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// render: fondo → enemigos → jugador → HUD → overlay de pausa
 // ---------------------------------------------------------------------------
 void PlayingState::render(sf::RenderWindow& window) {
     background.draw(window);
+
+    // Dibuja enemigos detrás del jugador (o al mismo nivel)
+    drawEnemies(window);
 
     // Dibuja el sprite del jugador si existe
     Skins* skin = player.getSkin();
