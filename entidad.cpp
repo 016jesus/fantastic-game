@@ -22,6 +22,10 @@ Skins* Entidad::getSkin()
 {
 	return this->skin.get();
 }
+void Entidad::setSkin(std::unique_ptr<Skins> newSkin)
+{
+	this->skin = std::move(newSkin);
+}
 Position Entidad::getPosition() const
 {
 	return this->position;

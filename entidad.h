@@ -23,6 +23,8 @@ public:
 	void setVelocidad(int velocidad);
 	void setVida(int nuevaVida);
 	Skins* getSkin();
+	// Transfers ownership of a new Skins object into this entity.
+	void setSkin(std::unique_ptr<Skins> newSkin);
 	Position getPosition() const;
 	void setPosition(const Position& pos);
 	float distanciaRelativa(float x, float y) override;

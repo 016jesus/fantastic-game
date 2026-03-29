@@ -4,34 +4,44 @@
 #include "inventario.h"
 #include "combate.h"
 #include <memory>
+#include <unordered_map>
 #ifndef PROTAGONISTA_H
 #define PROTAGONISTA_H
 
 class Protagonista : public Combate, public Dociles, public Inventario {
-	private:
-		int dinero;
-		std::vector<std::unique_ptr<Objetos>> inventario;
-		sf::Sprite healthBarSprite;
-		sf::Texture healthBarTexture;
+    private:
+        int dinero;
+        std::vector<std::unique_ptr<Objetos>> inventario;
+        sf::Sprite healthBarSprite;
+        sf::Texture healthBarTexture;
 
-	public:
-		//metodos propios de la clase
-		Protagonista(int vida, int velocidad, string nombre, int dinero);
-		int getDinero();
-		void setDinero(int dinero);
+        // One Skins object per animation (separate sprite-sheet files).
+        std::unordered_map<std::string, std::unique_ptr<Skins>> skinMap;
+        // Name of the currently active animation.
+        std::string activeAnim;
 
-		//metodos clase inventario
-		string actualizarInventario(bool validez, Objetos* objeto) override;
-		Skins* showInventario() override;
+    public:
+        //metodos propios de la clase
+        Protagonista(int vida, int velocidad, string nombre, int dinero);
+        int getDinero();
+        void setDinero(int dinero);
 
-		//metodos clase animaciones
+        // Loads all protagonist sprite sheets and registers their animations.
+        void loadSprites();
 
-		void movimientos(Keyboard* key)override;
+        // Advances the active animation by deltaTime seconds.
+        void updateAnimation(float deltaTime);
 
-		//metodos clase combate
-		Sprite* barraDeVida() override;
-		int ataque(Armas* arma) override;
+        //metodos clase inventario
+        string actualizarInventario(bool validez, Objetos* objeto) override;
+        Skins* showInventario() override;
 
+        //metodos clase animaciones
+        void movimientos(Keyboard* key) override;
+
+        //metodos clase combate
+        Sprite* barraDeVida() override;
+        int ataque(Armas* arma) override;
 };
 
 #endif
