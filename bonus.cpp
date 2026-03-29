@@ -1,5 +1,3 @@
-#ifndef BONUS_CPP
-#define BONUS_CPP
 #include "Bonus.h"
 void Bonus::setDescripcion(string desccripcion) {
 	this->descripcion = descripcion;
@@ -7,4 +5,3 @@ void Bonus::setDescripcion(string desccripcion) {
 string Bonus::getDescripcion() {
 	return this->descripcion;
 }
-#endif

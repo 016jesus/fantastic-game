@@ -1,5 +1,3 @@
-#ifndef SANADORAS_CPP
-#define SANADORAS_CPP
 #include "Sanadoras.h"
 Sanadoras::Sanadoras(){}
 Sanadoras::Sanadoras(bool valido, int precio, int aumento):Pociones(valido, precio), aumento(aumento){}
@@ -13,5 +11,3 @@ void Sanadoras::setAumento(int aumento) {
 int Sanadoras::efecto() {
 	return aumento;
 }
-
-#endif

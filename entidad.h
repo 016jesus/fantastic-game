@@ -1,7 +1,7 @@
 #pragma once
 #ifndef ENTIDAD_H
 #define ENTIDAD_H
-#include "colisiones..h"
+#include "colisiones.h"
 #include "skins.h"
 #include "animaciones.h"
 

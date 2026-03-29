@@ -1,5 +1,3 @@
-#ifndef CAC_CPP
-#define CAC_CPP
 #include "cac.h"
 
 CAC::CAC(int danio, float rango): Armas(danio), rango(rango){}
@@ -14,5 +12,3 @@ int CAC::validarRango(float x, float y) {
 
 }
 CAC::~CAC(){}
-
-#endif

@@ -1,5 +1,3 @@
-#ifndef ARMAS_CPP
-#define ARMAS_CPP
 #include "Armas.h"
 Armas::Armas(){}
 Armas::Armas(int danio): danio(danio){}
@@ -12,6 +10,3 @@ void Armas::setDanio(int danio) {
 int Armas::getTipo() {
 	return 2;
 }
-
-
-#endif
