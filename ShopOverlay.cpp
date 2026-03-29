@@ -88,6 +88,13 @@ void ShopOverlay::loadFont(const sf::Font& f) {
     moneyText.setFont(f);
     hintText.setFont(f);
     feedbackText.setFont(f);
+
+    // Easter egg text — dorado, centrado en la parte inferior del panel
+    easterEggText.setFont(f);
+    easterEggText.setCharacterSize(8u);
+    easterEggText.setFillColor(sf::Color(218, 165, 32));   // dorado
+    easterEggText.setPosition(PANEL_X + 8.f, PANEL_Y + PANEL_H - 38.f);
+
     buildUI();
 }
 
@@ -161,6 +168,26 @@ void ShopOverlay::buySelected(Protagonista& player) {
     feedbackText.setString("!Comprado!");
     feedbackText.setFillColor(sf::Color::Green);
     showFeedback = true;
+
+    // Easter egg: tras 3 compras exitosas, obsequiar 50 monedas + poción gratis
+    purchaseCount++;
+    if (purchaseCount >= 3 && !easterEggShown) {
+        easterEggShown = true;
+        easterEggText.setString("!Sabia que volveras!\n  Toma esto... shh.");
+        easterEggTimer = 4.f;
+        player.setDinero(player.getDinero() + 50);
+        player.actualizarInventario(true, new Sanadoras(true, 0, 20));
+    }
+}
+
+// ---------------------------------------------------------------------------
+// update: decrementa el temporizador del easter egg
+// ---------------------------------------------------------------------------
+void ShopOverlay::update(float deltaTime) {
+    if (easterEggTimer > 0.f) {
+        easterEggTimer -= deltaTime;
+        if (easterEggTimer < 0.f) easterEggTimer = 0.f;
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -230,5 +257,10 @@ void ShopOverlay::draw(sf::RenderWindow& window, Protagonista& player) {
         window.draw(feedbackText);
         // El mensaje se limpia en el siguiente draw para que persista un frame
         showFeedback = false;
+    }
+
+    // Easter egg: texto dorado visible mientras el temporizador esté activo
+    if (easterEggTimer > 0.f) {
+        window.draw(easterEggText);
     }
 }

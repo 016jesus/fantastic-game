@@ -11,6 +11,7 @@
 #include "ShopOverlay.h"
 #include "SeccionManager.h"
 #include "SeccionHUD.h"
+#include "SaveSystem.h"
 #include <SFML/Graphics.hpp>
 #include <optional>
 #include <string>
@@ -32,6 +33,7 @@ private:
     sf::Font font;
     sf::Text pauseHint;
     bool paused = false;
+    bool gameOver = false;   // true cuando el jugador muere; activa el guardado
 
     // Gestor de secciones del mapa y HUD de nombre de sección
     SeccionManager seccionManager{512.f, 256.f};

@@ -248,6 +248,9 @@ void PlayingState::update(float deltaTime) {
     applyGravity(deltaTime);
     updateHUD();
 
+    // Actualiza el temporizador del easter egg de la tienda cuando está abierta
+    if (shopOverlay.isOpen()) shopOverlay.update(deltaTime);
+
     // Actualiza el temporizador de fade del nombre de sección
     seccionHUD.update(deltaTime);
 }
@@ -448,6 +451,27 @@ void PlayingState::updateCombat(float deltaTime) {
                        [](const Skeleton& e) { return e.isDead(); }),
         enemies.end()
     );
+
+    // Game Over: guardar partida automáticamente cuando el jugador muere
+    if (!gameOver && player.getVida() <= 0) {
+        gameOver = true;
+        SaveData sd;
+        sd.playerName = player.getNombre();
+        sd.gender     = gender;
+        sd.hp         = 0;
+        sd.money      = player.getDinero();
+        // Posición del jugador al morir
+        Skins* skin = player.getSkin();
+        if (skin && skin->getSprite()) {
+            sf::Vector2f pos = skin->getSprite()->getPosition();
+            sd.posX = pos.x;
+            sd.posY = pos.y;
+        }
+        sd.section = seccionManager.currentIndex();
+        SaveSystem::getInstance().save(sd);
+        std::fprintf(stderr, "Game Over — partida guardada\n");
+        gsm->pop();
+    }
 }
 
 // ---------------------------------------------------------------------------

@@ -31,6 +31,9 @@ public:
     // Retorna true si consumió el evento.
     bool handleEvent(const sf::Event& event, Protagonista& player);
 
+    // Avanza el temporizador del easter egg; llamar con deltaTime cada frame
+    void update(float deltaTime);
+
     void draw(sf::RenderWindow& window, Protagonista& player);
 
 private:
@@ -51,5 +54,11 @@ private:
     void initCatalog();
     void buildUI();
     void buySelected(Protagonista& player);
+
+    // Easter egg: se activa tras 3 compras exitosas
+    int purchaseCount = 0;
+    bool easterEggShown = false;
+    sf::Text easterEggText;
+    float easterEggTimer = 0.f;
 };
 #endif

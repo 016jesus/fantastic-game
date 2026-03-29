@@ -207,5 +207,11 @@ int Protagonista::ataque(Armas* arma)
     // Guard: si no hay arma equipada (llamada directa desde el combat loop
     // sin pasar un objeto Armas), retornamos el daño base de puño.
     if (!arma) return 20;
+
+    // Ejemplo: si el arma es CAC, se puede encantar con operator+:
+    // CAC espada(15, 30.f); Filo filo("Afilado", 5);
+    // CAC espada_afilada = espada + filo;  // daño = 20
+    // La espada encantada tiene espada_afilada.getEnchantmentDesc() == "Afila armas"
+
     return arma->getDanio();
 }

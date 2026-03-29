@@ -158,6 +158,16 @@ void MenuState::handleEvent(const sf::Event& event) {
                 }
                 break;
 
+            // Tecla C → continuar partida guardada
+            case sf::Keyboard::C:
+                if (hasSaveGame) {
+                    SaveData sd;
+                    if (SaveSystem::getInstance().load(sd)) {
+                        gsm->replace(std::make_unique<PlayingState>(gsm, sd.playerName, sd.gender));
+                    }
+                }
+                break;
+
             // Tecla M → seleccionar Masculino directamente
             case sf::Keyboard::M:
                 selectedGender = Gender::Male;
@@ -214,6 +224,10 @@ void MenuState::render(sf::RenderWindow& window) {
         window.draw(genderFemaleBtn);
 
         window.draw(instructionText);
+
+        if (hasSaveGame) {
+            window.draw(continueText);
+        }
     }
     // Fallback sin fuente: SFML no puede dibujar Text sin fuente válida
 }
