@@ -4,15 +4,16 @@
 #include <cmath>
 
 // ---------------------------------------------------------------------------
-// Constructor: inicializa jugador, fondo, HUD y overlays de UI
+// Constructor: inicializa jugador, fondo, secciones, HUD y overlays de UI
 // ---------------------------------------------------------------------------
-PlayingState::PlayingState(GameStateManager* gsm, const std::string& playerName)
-    : player(MAX_HP, 5, playerName, 0)
+PlayingState::PlayingState(GameStateManager* gsm, const std::string& playerName,
+                           const std::string& gender)
+    : gender(gender), player(MAX_HP, 5, playerName, 0)
 {
     // Guarda el puntero al gestor (miembro protegido de IGameState)
     this->gsm = gsm;
 
-    // Configura el fondo verde oscuro (sin textura por defecto)
+    // El fondo de respaldo (ya no es el principal; las secciones dibujan el suyo)
     background.setSize(512.f, 256.f);
     background.setColor(sf::Color(34, 139, 34));
 
@@ -36,26 +37,49 @@ PlayingState::PlayingState(GameStateManager* gsm, const std::string& playerName)
     hpText.setFillColor(sf::Color::White);
     hpText.setPosition(12.f, 11.f);
 
-    // Hint de controles actualizado con todas las acciones disponibles
+    // --- Texto de monedas (debajo de HP) ---
+    moneyText.setFont(font);
+    moneyText.setCharacterSize(10u);
+    moneyText.setFillColor(sf::Color(255, 220, 50));   // amarillo dorado
+    moneyText.setPosition(10.f, 30.f);
+
+    // Hint de controles — desplazado para no solaparse con el moneyText
     pauseHint.setFont(font);
     pauseHint.setCharacterSize(10u);
     pauseHint.setFillColor(sf::Color(200, 200, 200));
     pauseHint.setString("ESC:pausa I:inv J:atacar E:interactuar");
-    pauseHint.setPosition(10.f, 30.f);
+    pauseHint.setPosition(10.f, 45.f);
 
-    // Conectar la fuente a los overlays de UI
+    // Conectar la fuente a los overlays de UI y al SeccionHUD
     dialogBox.loadFont(font);
     inventoryOverlay.loadFont(font);
     shopOverlay.loadFont(font);
+    seccionHUD.loadFont(font);
+
+    // --- Texto de victoria (se muestra al derrotar al jefe) ---
+    victoryText.setFont(font);
+    victoryText.setString("¡JEFE DERROTADO!");
+    victoryText.setCharacterSize(28u);
+    victoryText.setFillColor(sf::Color(255, 215, 0));  // dorado
+    // Centrar horizontalmente en la ventana (256 px de ancho es el centro)
+    sf::FloatRect vtb = victoryText.getLocalBounds();
+    victoryText.setOrigin(vtb.left + vtb.width  / 2.f,
+                          vtb.top  + vtb.height / 2.f);
+    victoryText.setPosition(256.f, 100.f);
 }
 
 // ---------------------------------------------------------------------------
-// onEnter: posiciona al jugador, genera enemigos e inicializa NPCs y cofres
+// onEnter: posiciona al jugador, genera enemigos, inicializa NPCs/cofres y
+// muestra el nombre de la primera sección en pantalla.
 // ---------------------------------------------------------------------------
 void PlayingState::onEnter() {
     paused    = false;
     velocityY = 0.f;
     onGround  = true;
+
+    // Carga los sprites del jugador (sin parámetro de género — la API actual
+    // no acepta género; se adapta cuando la clase Protagonista lo soporte)
+    player.loadSprites();
 
     // Posición inicial: izquierda del mapa, sobre el suelo
     if (player.getSkin() != nullptr) {
@@ -65,6 +89,9 @@ void PlayingState::onEnter() {
     spawnEnemies();
     setupNpcsAndChests();
     updateHUD();
+
+    // Muestra el nombre de la sección inicial durante 3 segundos
+    seccionHUD.showName(seccionManager.current()->getNombre());
 }
 
 // ---------------------------------------------------------------------------
@@ -199,11 +226,10 @@ float PlayingState::distanceToPlayer(float ox, float oy) {
 // ---------------------------------------------------------------------------
 // update: lógica de juego principal.
 // checkInteractions se llama siempre (incluso en pausa es ignorado).
-// Si hay overlay abierto, no se ejecuta movimiento ni combate.
+// Si hay overlay abierto, el jugador no puede moverse ni atacar.
 // ---------------------------------------------------------------------------
 void PlayingState::update(float deltaTime) {
     // Las interacciones (E/I) se verifican antes del bloqueo por pausa
-    // para que la detección ocurra; checkInteractions ignora overlays abiertos.
     checkInteractions();
 
     if (paused) return;
@@ -216,10 +242,14 @@ void PlayingState::update(float deltaTime) {
     if (!anyOverlayOpen) {
         handleMovement(deltaTime);
         updateCombat(deltaTime);
+        checkSectionTransition();
     }
 
     applyGravity(deltaTime);
     updateHUD();
+
+    // Actualiza el temporizador de fade del nombre de sección
+    seccionHUD.update(deltaTime);
 }
 
 // ---------------------------------------------------------------------------
@@ -296,20 +326,30 @@ void PlayingState::applyGravity(float deltaTime) {
 }
 
 // ---------------------------------------------------------------------------
-// spawnEnemies: crea Skeletons en posiciones fijas sobre el suelo
+// spawnEnemies: si estamos en la Sala del Jefe (sección 2), instancia el boss
+// y limpia el vector de Skeletons. En cualquier otra sección, spawna 3
+// Skeletons en posiciones fijas.
 // ---------------------------------------------------------------------------
 void PlayingState::spawnEnemies() {
     enemies.clear();
 
-    const float ey = groundY - 32.f;
-    enemies.emplace_back(200.f, ey);
-    enemies.emplace_back(320.f, ey);
-    enemies.emplace_back(400.f, ey);
+    if (seccionManager.currentIndex() == 2) {
+        // Sección 2: Sala del Jefe — instanciar boss en el centro del mapa
+        boss.emplace(256.f, groundY - 48.f);
+        bossDefeated = false;
+    } else {
+        // Secciones 0 y 1: tres Skeletons sobre el suelo
+        boss.reset();
+        const float ey = groundY - 32.f;
+        enemies.emplace_back(200.f, ey);
+        enemies.emplace_back(320.f, ey);
+        enemies.emplace_back(400.f, ey);
+    }
 }
 
 // ---------------------------------------------------------------------------
-// updateCombat: actualiza IA de enemigos, resuelve daño bidireccional y
-// elimina los muertos del vector.
+// updateCombat: actualiza IA de enemigos (Skeletons y boss), resuelve daño
+// bidireccional y elimina Skeletons muertos del vector.
 // ---------------------------------------------------------------------------
 void PlayingState::updateCombat(float deltaTime) {
     sf::Vector2f playerSpritePos(0.f, 0.f);
@@ -323,6 +363,33 @@ void PlayingState::updateCombat(float deltaTime) {
         playerHalfH = pb.height * 0.5f;
     }
 
+    // --- Boss (Sala del Jefe, sección 2) ---
+    if (boss.has_value() && !bossDefeated) {
+        boss->update(deltaTime, player);
+
+        // Ataque normal del boss
+        if (boss->canAttackPlayer(player)) {
+            int newVida = player.getVida() - static_cast<int>(boss->getAttackDamage());
+            if (newVida < 0) newVida = 0;
+            player.setVida(newVida);
+            boss->resetAttackCooldown();
+        }
+
+        // Ataque especial del boss (daño mayor, área más amplia)
+        if (boss->canSpecialAttackPlayer(player)) {
+            int newVida = player.getVida() - static_cast<int>(boss->getSpecialAttackDamage());
+            if (newVida < 0) newVida = 0;
+            player.setVida(newVida);
+            boss->resetSpecialAttackCooldown();
+        }
+
+        // Comprobar si el boss murió
+        if (boss->isDead()) {
+            bossDefeated = true;
+        }
+    }
+
+    // --- Skeletons (secciones 0 y 1) ---
     for (auto& enemy : enemies) {
         enemy.update(deltaTime, player);
 
@@ -343,6 +410,18 @@ void PlayingState::updateCombat(float deltaTime) {
         float px = playerSpritePos.x + playerHalfW;
         float py = playerSpritePos.y + playerHalfH;
 
+        // Atacar al boss si está activo
+        if (boss.has_value() && !bossDefeated) {
+            sf::FloatRect bb = boss->getBounds();
+            float bx   = bb.left + bb.width  * 0.5f;
+            float by   = bb.top  + bb.height * 0.5f;
+            float dist = std::sqrt((bx - px) * (bx - px) + (by - py) * (by - py));
+            if (dist <= PLAYER_ATTACK_RANGE) {
+                boss->takeDamage(PLAYER_ATTACK_DAMAGE);
+            }
+        }
+
+        // Atacar Skeletons
         for (auto& enemy : enemies) {
             if (enemy.isDead()) continue;
 
@@ -350,8 +429,8 @@ void PlayingState::updateCombat(float deltaTime) {
             float ex = eb.left + eb.width  * 0.5f;
             float ey = eb.top  + eb.height * 0.5f;
 
-            float dx = ex - px;
-            float dy = ey - py;
+            float dx   = ex - px;
+            float dy   = ey - py;
             float dist = std::sqrt(dx * dx + dy * dy);
 
             if (dist <= PLAYER_ATTACK_RANGE) {
@@ -372,7 +451,7 @@ void PlayingState::updateCombat(float deltaTime) {
 }
 
 // ---------------------------------------------------------------------------
-// updateHUD: ajusta el ancho del fill de la barra HP según la vida actual
+// updateHUD: ajusta barra HP y texto de monedas según el estado del jugador
 // ---------------------------------------------------------------------------
 void PlayingState::updateHUD() {
     const int   vida      = player.getVida();
@@ -381,15 +460,19 @@ void PlayingState::updateHUD() {
 
     hpBarFill.setSize(sf::Vector2f(fillWidth, 15.f));
     hpText.setString("HP: " + std::to_string(vida) + "/" + std::to_string(MAX_HP));
+
+    // Actualiza el contador de monedas
+    moneyText.setString("Monedas: " + std::to_string(player.getDinero()));
 }
 
 // ---------------------------------------------------------------------------
-// drawHUD: dibuja la barra HP y el hint de controles
+// drawHUD: dibuja la barra HP, el contador de monedas y el hint de controles
 // ---------------------------------------------------------------------------
 void PlayingState::drawHUD(sf::RenderWindow& window) {
     window.draw(hpBarBg);
     window.draw(hpBarFill);
     window.draw(hpText);
+    window.draw(moneyText);
     window.draw(pauseHint);
 }
 
@@ -485,13 +568,53 @@ void PlayingState::drawNpcsAndChests(sf::RenderWindow& window) {
 }
 
 // ---------------------------------------------------------------------------
-// render: fondo → enemigos → NPCs/cofres → jugador → HUD → overlays de UI
+// checkSectionTransition: si el jugador supera el límite derecho de la
+// sección actual, avanza a la siguiente, reposiciona al jugador y respawnea
+// enemigos.
+// ---------------------------------------------------------------------------
+void PlayingState::checkSectionTransition() {
+    // Obtiene la posición X del sprite del jugador
+    float px = 0.f;
+    Skins* skin = player.getSkin();
+    if (skin && skin->getSprite()) {
+        px = skin->getSprite()->getPosition().x;
+    }
+
+    if (seccionManager.shouldTransition(px)) {
+        if (seccionManager.nextSection()) {
+            // Reposiciona al jugador al inicio de la nueva sección
+            if (skin && skin->getSprite()) {
+                skin->getSprite()->setPosition(
+                    16.f,
+                    groundY - skin->getSprite()->getGlobalBounds().height);
+            }
+            velocityY = 0.f;
+            onGround  = true;
+
+            // Respawnea enemigos para la nueva sección
+            spawnEnemies();
+
+            // Muestra el nombre de la nueva sección en pantalla
+            seccionHUD.showName(seccionManager.current()->getNombre());
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// render: fondo de sección → enemigos → NPCs/cofres → jugador → HUD →
+//         SeccionHUD → overlays de UI → pausa
 // ---------------------------------------------------------------------------
 void PlayingState::render(sf::RenderWindow& window) {
-    background.draw(window);
+    // Fondo de la sección activa (reemplaza el fondo verde fijo)
+    seccionManager.current()->drawBackground(window);
 
-    // Dibuja enemigos
+    // Dibuja enemigos Skeleton
     drawEnemies(window);
+
+    // Dibuja el boss si está activo en esta sección
+    if (boss.has_value() && !bossDefeated) {
+        boss->draw(window);
+    }
 
     // Dibuja NPCs, vendedor y cofres
     drawNpcsAndChests(window);
@@ -503,6 +626,14 @@ void PlayingState::render(sf::RenderWindow& window) {
     }
 
     drawHUD(window);
+
+    // Nombre de la sección (fade-out automático, centrado en la parte superior)
+    seccionHUD.draw(window);
+
+    // Texto de victoria al derrotar al jefe (centrado en pantalla)
+    if (bossDefeated) {
+        window.draw(victoryText);
+    }
 
     // --- Overlays de UI (por encima del HUD) ---
     if (dialogBox.isOpen()) {

@@ -24,6 +24,23 @@ void MenuState::onEnter() {
 
     // Tamaño de ventana conocido (512x256); setupUI usa ese valor
     setupUI(sf::Vector2u(512u, 256u));
+
+    // Verificar si existe un save para mostrar la opción "Continuar"
+    hasSaveGame = SaveSystem::getInstance().hasSave();
+    if (hasSaveGame && fontLoaded) {
+        continueText.setFont(font);
+        continueText.setString("C: Continuar partida");
+        continueText.setCharacterSize(16u);
+        continueText.setFillColor(sf::Color::Green);
+
+        // Posicionar debajo del texto de instrucciones (instructionText está en cy+80)
+        const float cx = 256.f;   // mitad de 512
+        const float cy = 128.f;   // mitad de 256
+        sf::FloatRect cb = continueText.getLocalBounds();
+        continueText.setOrigin(cb.left + cb.width / 2.f,
+                               cb.top  + cb.height / 2.f);
+        continueText.setPosition(cx, cy + 100.f);
+    }
 }
 
 // ---------------------------------------------------------------------------

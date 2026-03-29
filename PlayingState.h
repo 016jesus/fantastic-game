@@ -5,12 +5,14 @@
 #include "protagonista.h"
 #include "MapBackground.h"
 #include "skeleton.h"
+#include "jefe.h"
 #include "DialogBox.h"
 #include "InventoryOverlay.h"
 #include "ShopOverlay.h"
 #include "SeccionManager.h"
 #include "SeccionHUD.h"
 #include <SFML/Graphics.hpp>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -44,6 +46,11 @@ private:
     // Enemies
     std::vector<Skeleton> enemies;
     bool attackPressed = false;  // true mientras J/Espacio esté pulsado
+
+    // Boss (Sala del Jefe, sección 2)
+    std::optional<Jefe> boss;
+    bool bossDefeated = false;
+    sf::Text victoryText;
 
     // -----------------------------------------------------------------------
     // Overlays de UI: diálogo, inventario, tienda

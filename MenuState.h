@@ -2,6 +2,7 @@
 #ifndef MENU_STATE_H
 #define MENU_STATE_H
 #include "IGameState.h"
+#include "SaveSystem.h"
 #include <SFML/Graphics.hpp>
 #include <string>
 
@@ -30,6 +31,10 @@ private:
     sf::Text genderMaleBtn;
     sf::Text genderFemaleBtn;
     sf::RectangleShape genderHighlight;
+
+    // "Continuar partida" — visible sólo si existe un archivo de save
+    bool hasSaveGame = false;
+    sf::Text continueText;
 
     void setupUI(const sf::Vector2u& windowSize);
     void startGame();
