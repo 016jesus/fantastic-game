@@ -16,6 +16,7 @@ class CAC : public Armas {
 		void setRango(float rango);
 		float getRango();
 		int validarRango(float x, float y);
+		int getTamanio() override { return 1; }  // implementa Armas::getTamanio puro
 
 		const std::string& getEnchantmentDesc() const;
 		void setEnchantmentDesc(const std::string& desc);
