@@ -112,6 +112,15 @@ Skins* Protagonista::showInventario()
     return nullptr;
 }
 
+// ---------------------------------------------------------------------------
+// removeFromInventario: elimina el ítem en la posición index del inventario
+// ---------------------------------------------------------------------------
+void Protagonista::removeFromInventario(int index)
+{
+    if (index >= 0 && index < static_cast<int>(inventario.size()))
+        inventario.erase(inventario.begin() + index);
+}
+
 void Protagonista::movimientos(Keyboard* key)
 {
     bool moving = false;
