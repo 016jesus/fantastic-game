@@ -26,6 +26,11 @@ class Protagonista : public Combate, public Dociles, public Inventario {
         int getDinero();
         void setDinero(int dinero);
 
+        // Acceso de solo lectura al inventario (para overlays de UI)
+        const std::vector<std::unique_ptr<Objetos>>& getInventario() const { return inventario; }
+        // Elimina un ítem del inventario por índice (0-based)
+        void removeFromInventario(int index);
+
         // Loads all protagonist sprite sheets and registers their animations.
         void loadSprites();
 
