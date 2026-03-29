@@ -1,18 +1,38 @@
 #pragma once
 #ifndef COFRE_H
 #define COFRE_H
-#include <iostream>
-#include <vector>
 #include "Objetos.h"
+#include <vector>
+#include <memory>
+#include <string>
 using namespace std;
 
 class Cofre {
-private:
-	int monedas;
-	vector<Objetos*> objetos;
 public:
-	Cofre(int monedas, vector<Objetos*> objetos);
-	void setMonedas(int monedas);
-	int getMonedas();
+    // Constructor simple: cofre con monedas y sin ítems
+    explicit Cofre(int monedas);
+    // Constructor completo: con monedas e ítems
+    Cofre(int monedas, std::vector<std::unique_ptr<Objetos>> items);
+
+    void setMonedas(int monedas);
+    int getMonedas() const;
+
+    // Añade un ítem al cofre
+    void addObjeto(std::unique_ptr<Objetos> obj);
+
+    // Retorna los ítems (ownership transferida — el cofre queda vacío)
+    std::vector<std::unique_ptr<Objetos>> takeObjetos();
+
+    // Si ya fue abierto
+    bool isOpened() const;
+    void setOpened(bool opened);
+
+    // Descripción del contenido para mostrar en UI
+    std::string describe() const;
+
+private:
+    int monedas;
+    std::vector<std::unique_ptr<Objetos>> objetos;
+    bool opened = false;
 };
-#endif // !COFRE_H
+#endif
