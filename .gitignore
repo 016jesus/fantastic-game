@@ -1,0 +1,20 @@
+# Build output
+build/
+*.o
+*.a
+*.so
+*.dll
+*.exe
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Claude Code internals
+.claude/agent-memory/
+
+# OS
+.DS_Store
+Thumbs.db
