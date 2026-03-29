@@ -5,6 +5,9 @@
 #include "protagonista.h"
 #include "MapBackground.h"
 #include "skeleton.h"
+#include "DialogBox.h"
+#include "InventoryOverlay.h"
+#include "ShopOverlay.h"
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <vector>
@@ -33,6 +36,36 @@ private:
     std::vector<Skeleton> enemies;
     bool attackPressed = false;  // true mientras J/Espacio esté pulsado
 
+    // -----------------------------------------------------------------------
+    // Overlays de UI: diálogo, inventario, tienda
+    // -----------------------------------------------------------------------
+    DialogBox dialogBox;
+    InventoryOverlay inventoryOverlay;
+    ShopOverlay shopOverlay;
+
+    // -----------------------------------------------------------------------
+    // Puntos de interacción en el mapa
+    // -----------------------------------------------------------------------
+    struct NpcSpot {
+        float x, y;
+        std::string name;
+        std::vector<std::string> dialog;
+    };
+    std::vector<NpcSpot> npcSpots;
+
+    struct VendorSpot { float x, y; };
+    VendorSpot vendorSpot{380.f, 148.f};
+
+    struct ChestSpot {
+        float x, y;
+        bool opened;
+        int money;
+    };
+    std::vector<ChestSpot> chestSpots;
+
+    // -----------------------------------------------------------------------
+    // Helpers de movimiento, HUD y combate
+    // -----------------------------------------------------------------------
     void handleMovement(float deltaTime);
     void updateHUD();
     void drawHUD(sf::RenderWindow& window);
@@ -43,6 +76,14 @@ private:
     void updateCombat(float deltaTime);
     void drawEnemies(sf::RenderWindow& window);
 
+    // -----------------------------------------------------------------------
+    // Helpers de NPCs, cofres e interacciones
+    // -----------------------------------------------------------------------
+    void setupNpcsAndChests();
+    void checkInteractions();
+    void drawNpcsAndChests(sf::RenderWindow& window);
+    float distanceToPlayer(float ox, float oy) const;
+
     float groundY = 180.f;   // Y del suelo en coordenadas de mundo
     float velocityY = 0.f;
     bool onGround = true;
@@ -51,7 +92,10 @@ private:
     static constexpr int   MAX_HP     = 100;
 
     // Rango de ataque del jugador en píxeles (distancia centro a AABB enemigo)
-    static constexpr float PLAYER_ATTACK_RANGE = 40.f;
+    static constexpr float PLAYER_ATTACK_RANGE  = 40.f;
     static constexpr int   PLAYER_ATTACK_DAMAGE = 20;
+
+    // Radio de detección de interacción con objetos del mundo
+    static constexpr float INTERACT_RADIUS = 40.f;
 };
 #endif
