@@ -1,0 +1,4 @@
+Sprites/MONSTER/Goblin/Idle.png
+Sprites/MONSTER/Goblin/Run.png
+Sprites/MONSTER/Goblin/Hit.png
+Sprites/MONSTER/Goblin/Death.png

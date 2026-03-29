@@ -1,0 +1,4 @@
+Sprites/MONSTER/Flying_eye/Attack.png
+Sprites/MONSTER/Flying_eye/Hit.png
+Sprites/MONSTER/Flying_eye/Death.png
+Sprites/MONSTER/Flying_eye/Flight.png

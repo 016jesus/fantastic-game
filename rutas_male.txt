@@ -1,0 +1,8 @@
+Sprites/Outline/120x80_PNGSheets/_Idle.png
+Sprites/Outline/120x80_PNGSheets/_Run.png
+Sprites/Outline/120x80_PNGSheets/_Jump.png
+Sprites/Outline/120x80_PNGSheets/_Attack.png
+Sprites/Outline/120x80_PNGSheets/_Hit.png
+Sprites/Outline/120x80_PNGSheets/_Death.png
+
+

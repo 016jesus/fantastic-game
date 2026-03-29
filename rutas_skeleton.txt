@@ -1,0 +1,7 @@
+Sprites/Skeleton/Sprite_Sheets/_Idle.png
+Sprites/Skeleton/Sprite_Sheets/_Walk.png
+Sprites/Skeleton/Sprite_Sheets/_Attack.png
+Sprites/Skeleton/Sprite_Sheets/_Hit.png
+Sprites/Skeleton/Sprite_Sheets/_Dead.png
+
+
