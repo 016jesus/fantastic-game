@@ -82,7 +82,7 @@ private:
     void setupNpcsAndChests();
     void checkInteractions();
     void drawNpcsAndChests(sf::RenderWindow& window);
-    float distanceToPlayer(float ox, float oy) const;
+    float distanceToPlayer(float ox, float oy);
 
     float groundY = 180.f;   // Y del suelo en coordenadas de mundo
     float velocityY = 0.f;

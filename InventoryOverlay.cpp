@@ -79,7 +79,7 @@ bool InventoryOverlay::isOpen() const {
 // getItemName: convierte el tipo numérico del objeto a su nombre legible
 // Tipo 1 = Pociones (Sanadoras), Tipo 2 = Armas, Tipo 3 = Pociones Malignas
 // ---------------------------------------------------------------------------
-std::string InventoryOverlay::getItemName(const Objetos* obj) const {
+std::string InventoryOverlay::getItemName(Objetos* obj) const {
     if (!obj) return "Objeto desconocido";
     switch (obj->getTipo()) {
         case 1: return "Pocion Sanadora";
@@ -136,7 +136,7 @@ bool InventoryOverlay::handleEvent(const sf::Event& event, Protagonista& player)
         case sf::Keyboard::Return:
             // Usar el ítem seleccionado
             if (count > 0 && selectedIndex < count) {
-                const Objetos* obj = inv[selectedIndex].get();
+                Objetos* obj = inv[selectedIndex].get();
                 if (obj && obj->getTipo() == 1) {
                     // Poción sanadora: restaura 20 de vida (máximo 100)
                     int nuevaVida = player.getVida() + 20;

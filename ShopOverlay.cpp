@@ -3,6 +3,16 @@
 #include "cac.h"
 
 // ---------------------------------------------------------------------------
+// ArmaBasica: subclase concreta de CAC para instanciar en la tienda.
+// CAC hereda de Armas que declara getTamanio() puro; esta clase lo implementa.
+// ---------------------------------------------------------------------------
+class ArmaBasica : public CAC {
+public:
+    ArmaBasica(int danio, float rango) : CAC(danio, rango) {}
+    int getTamanio() override { return 1; }
+};
+
+// ---------------------------------------------------------------------------
 // Panel centrado en 512x256: 320x180 en (96, 38)
 // ---------------------------------------------------------------------------
 static constexpr float PANEL_X = 96.f;
@@ -145,7 +155,7 @@ void ShopOverlay::buySelected(Protagonista& player) {
         player.actualizarInventario(true, new Sanadoras(true, item.price, aumento));
     } else if (item.type == 2) {
         // Arma básica con daño 15 y rango 30
-        player.actualizarInventario(true, new CAC(15, 30.f));
+        player.actualizarInventario(true, new ArmaBasica(15, 30.f));
     }
 
     feedbackText.setString("!Comprado!");
@@ -189,7 +199,7 @@ bool ShopOverlay::handleEvent(const sf::Event& event, Protagonista& player) {
 // ---------------------------------------------------------------------------
 // draw: dibuja el panel completo de la tienda
 // ---------------------------------------------------------------------------
-void ShopOverlay::draw(sf::RenderWindow& window, const Protagonista& player) {
+void ShopOverlay::draw(sf::RenderWindow& window, Protagonista& player) {
     if (!open_) return;
 
     // Actualizar texto de dinero del jugador

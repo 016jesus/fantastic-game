@@ -35,6 +35,6 @@ private:
     const sf::Font* font = nullptr;
 
     void buildItemList(const Protagonista& player);
-    std::string getItemName(const Objetos* obj) const;
+    std::string getItemName(Objetos* obj) const;
 };
 #endif

@@ -31,7 +31,7 @@ public:
     // Retorna true si consumió el evento.
     bool handleEvent(const sf::Event& event, Protagonista& player);
 
-    void draw(sf::RenderWindow& window, const Protagonista& player);
+    void draw(sf::RenderWindow& window, Protagonista& player);
 
 private:
     bool open_ = false;
