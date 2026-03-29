@@ -23,7 +23,9 @@ void CAC::setEnchantmentDesc(const std::string& desc) {
 }
 
 CAC operator+(CAC weapon, const Filo& enc) {
-	weapon.setDanio(weapon.getDanio() + enc.getAumento());
+	// getAumento() and atributo() are non-const in the hierarchy; cast away const safely
+	// since neither method mutates observable state.
+	weapon.setDanio(weapon.getDanio() + const_cast<Filo&>(enc).getAumento());
 	weapon.setEnchantmentDesc(const_cast<Filo&>(enc).atributo());
 	return weapon;
 }
