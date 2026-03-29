@@ -8,29 +8,38 @@
 #include "DialogBox.h"
 #include "InventoryOverlay.h"
 #include "ShopOverlay.h"
+#include "SeccionManager.h"
+#include "SeccionHUD.h"
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <vector>
 
 class PlayingState : public IGameState {
 public:
-    PlayingState(GameStateManager* gsm, const std::string& playerName);
+    PlayingState(GameStateManager* gsm, const std::string& playerName,
+                 const std::string& gender = "male");
     void handleEvent(const sf::Event& event) override;
     void update(float deltaTime) override;
     void render(sf::RenderWindow& window) override;
     void onEnter() override;
 
 private:
+    std::string gender;                       // "male" o "female"
     Protagonista player;
     MapBackground background;
     sf::Font font;
     sf::Text pauseHint;
     bool paused = false;
 
+    // Gestor de secciones del mapa y HUD de nombre de sección
+    SeccionManager seccionManager{512.f, 256.f};
+    SeccionHUD seccionHUD;
+
     // HUD
     sf::RectangleShape hpBarBg;
     sf::RectangleShape hpBarFill;
     sf::Text hpText;
+    sf::Text moneyText;   // muestra las monedas del jugador
 
     // Enemies
     std::vector<Skeleton> enemies;
@@ -64,12 +73,13 @@ private:
     std::vector<ChestSpot> chestSpots;
 
     // -----------------------------------------------------------------------
-    // Helpers de movimiento, HUD y combate
+    // Helpers de movimiento, HUD, combate y transición de secciones
     // -----------------------------------------------------------------------
     void handleMovement(float deltaTime);
     void updateHUD();
     void drawHUD(sf::RenderWindow& window);
     void applyGravity(float deltaTime);
+    void checkSectionTransition();   // detecta si el jugador cruza al área siguiente
 
     // Enemy / combat helpers
     void spawnEnemies();

@@ -38,7 +38,6 @@ void MenuState::setupUI(const sf::Vector2u& windowSize) {
     titleText.setString("The Legend of Tilin");
     titleText.setCharacterSize(40u);
     titleText.setFillColor(sf::Color::White);
-    // Centrar por el bounds del texto
     sf::FloatRect titleBounds = titleText.getLocalBounds();
     titleText.setOrigin(titleBounds.left + titleBounds.width / 2.f,
                         titleBounds.top  + titleBounds.height / 2.f);
@@ -67,10 +66,44 @@ void MenuState::setupUI(const sf::Vector2u& windowSize) {
     nameText.setString("");
     nameText.setCharacterSize(18u);
     nameText.setFillColor(sf::Color::White);
-    // Se reposiciona en render() para seguir al texto escrito
     nameText.setPosition(cx - 145.f, cy - 5.f);
 
-    // --- Instrucción inferior ---
+    // -----------------------------------------------------------------------
+    // Fila de selección de género (~25 px debajo del borde inferior del
+    // inputBox, que está en cy+10+20 = cy+30 → fila en cy+55)
+    // -----------------------------------------------------------------------
+
+    // Highlight: rectángulo semitransparente amarillo detrás del botón activo
+    genderHighlight.setSize(sf::Vector2f(110.f, 20.f));
+    genderHighlight.setFillColor(sf::Color(255, 220, 0, 90));
+    genderHighlight.setOutlineColor(sf::Color(255, 220, 0, 180));
+    genderHighlight.setOutlineThickness(1.f);
+
+    // Etiqueta "Genero:"
+    genderLabel.setFont(font);
+    genderLabel.setString("Genero:");
+    genderLabel.setCharacterSize(14u);
+    genderLabel.setFillColor(sf::Color::White);
+    genderLabel.setPosition(cx - 150.f, cy + 53.f);
+
+    // Botón "[M] Masculino"
+    genderMaleBtn.setFont(font);
+    genderMaleBtn.setString("[M] Masculino");
+    genderMaleBtn.setCharacterSize(14u);
+    genderMaleBtn.setFillColor(sf::Color::White);
+    genderMaleBtn.setPosition(cx - 50.f, cy + 53.f);
+
+    // Botón "[F] Femenino"
+    genderFemaleBtn.setFont(font);
+    genderFemaleBtn.setString("[F] Femenino");
+    genderFemaleBtn.setCharacterSize(14u);
+    genderFemaleBtn.setFillColor(sf::Color::White);
+    genderFemaleBtn.setPosition(cx + 65.f, cy + 53.f);
+
+    // Posiciona el highlight según la selección inicial (Male)
+    updateGenderHighlight();
+
+    // --- Instrucción inferior — desplazada hacia abajo para no solaparse ---
     instructionText.setFont(font);
     instructionText.setString("Presiona ENTER para comenzar");
     instructionText.setCharacterSize(16u);
@@ -78,35 +111,62 @@ void MenuState::setupUI(const sf::Vector2u& windowSize) {
     sf::FloatRect instrBounds = instructionText.getLocalBounds();
     instructionText.setOrigin(instrBounds.left + instrBounds.width / 2.f,
                               instrBounds.top  + instrBounds.height / 2.f);
-    instructionText.setPosition(cx, cy + 55.f);
+    instructionText.setPosition(cx, cy + 80.f);
 }
 
 // ---------------------------------------------------------------------------
-// handleEvent: captura texto y teclas de control
+// handleEvent: captura texto, controla selección de género y arranca el juego
 // ---------------------------------------------------------------------------
 void MenuState::handleEvent(const sf::Event& event) {
     if (event.type == sf::Event::TextEntered) {
         // Sólo caracteres ASCII imprimibles (>= 32) y backspace (8)
         if (event.text.unicode == 8u) {
-            // Backspace: elimina el último carácter
             if (!playerName.empty()) {
                 playerName.pop_back();
             }
         } else if (event.text.unicode >= 32u && event.text.unicode < 128u) {
-            // Añade carácter hasta el límite de 15
             if (playerName.size() < 15u) {
                 playerName += static_cast<char>(event.text.unicode);
             }
         }
-        // Actualiza el texto visible
         nameText.setString(playerName);
     }
 
     if (event.type == sf::Event::KeyPressed) {
-        if (event.key.code == sf::Keyboard::Return) {
-            if (!playerName.empty()) {
-                startGame();
-            }
+        switch (event.key.code) {
+            // Confirmar e iniciar juego
+            case sf::Keyboard::Return:
+                if (!playerName.empty()) {
+                    startGame();
+                }
+                break;
+
+            // Tecla M → seleccionar Masculino directamente
+            case sf::Keyboard::M:
+                selectedGender = Gender::Male;
+                updateGenderHighlight();
+                break;
+
+            // Tecla F → seleccionar Femenino directamente
+            case sf::Keyboard::F:
+                selectedGender = Gender::Female;
+                updateGenderHighlight();
+                break;
+
+            // Flecha izquierda → Masculino
+            case sf::Keyboard::Left:
+                selectedGender = Gender::Male;
+                updateGenderHighlight();
+                break;
+
+            // Flecha derecha → Femenino
+            case sf::Keyboard::Right:
+                selectedGender = Gender::Female;
+                updateGenderHighlight();
+                break;
+
+            default:
+                break;
         }
     }
 }
@@ -129,16 +189,39 @@ void MenuState::render(sf::RenderWindow& window) {
         window.draw(promptText);
         window.draw(inputBox);
         window.draw(nameText);
+
+        // --- Fila de selección de género ---
+        window.draw(genderHighlight);
+        window.draw(genderLabel);
+        window.draw(genderMaleBtn);
+        window.draw(genderFemaleBtn);
+
         window.draw(instructionText);
+    }
+    // Fallback sin fuente: SFML no puede dibujar Text sin fuente válida
+}
+
+// ---------------------------------------------------------------------------
+// updateGenderHighlight: reposiciona el rectángulo amarillo detrás del botón
+// actualmente seleccionado.
+// ---------------------------------------------------------------------------
+void MenuState::updateGenderHighlight() {
+    if (selectedGender == Gender::Male) {
+        // Alinea el highlight con genderMaleBtn
+        sf::Vector2f pos = genderMaleBtn.getPosition();
+        genderHighlight.setPosition(pos.x - 3.f, pos.y - 1.f);
     } else {
-        // Fallback sin fuente: al menos muestra el título como texto básico
-        // (SFML no puede dibujar Text sin fuente válida, no hacemos nada más)
+        // Alinea el highlight con genderFemaleBtn
+        sf::Vector2f pos = genderFemaleBtn.getPosition();
+        genderHighlight.setPosition(pos.x - 3.f, pos.y - 1.f);
     }
 }
 
 // ---------------------------------------------------------------------------
-// startGame: transiciona al estado de juego reemplazando el menú
+// startGame: transiciona al estado de juego pasando nombre y género
 // ---------------------------------------------------------------------------
 void MenuState::startGame() {
-    gsm->replace(std::make_unique<PlayingState>(gsm, playerName));
+    const std::string genderStr =
+        (selectedGender == Gender::Male) ? "male" : "female";
+    gsm->replace(std::make_unique<PlayingState>(gsm, playerName, genderStr));
 }
