@@ -3,13 +3,16 @@
 #include "Objetos.h"
 #include "inventario.h"
 #include "combate.h"
+#include <memory>
 #ifndef PROTAGONISTA_H
 #define PROTAGONISTA_H
 
 class Protagonista : public Combate, public Dociles, public Inventario {
 	private:
 		int dinero;
-		vector <Objetos*> inventario;
+		std::vector<std::unique_ptr<Objetos>> inventario;
+		sf::Sprite healthBarSprite;
+		sf::Texture healthBarTexture;
 
 	public:
 		//metodos propios de la clase
@@ -28,7 +31,7 @@ class Protagonista : public Combate, public Dociles, public Inventario {
 		//metodos clase combate
 		Sprite* barraDeVida() override;
 		int ataque(Armas* arma) override;
-		
+
 };
 
 #endif

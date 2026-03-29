@@ -3,15 +3,16 @@
 #define COFRE_H
 #include <iostream>
 #include <vector>
-using namespace std; 
+#include "Objetos.h"
+using namespace std;
 
 class Cofre {
-private: 
-	int monedas; 
+private:
+	int monedas;
 	vector<Objetos*> objetos;
-public: 
-	Cofres(int monedas,vector<Objetos*> objetos){}
-	void setMonedas(int monedas); 
-	int getMonedas(); 
+public:
+	Cofre(int monedas, vector<Objetos*> objetos);
+	void setMonedas(int monedas);
+	int getMonedas();
 };
 #endif // !COFRE_H

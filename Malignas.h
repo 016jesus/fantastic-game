@@ -4,7 +4,7 @@
 #include "Pociones.h"
 #include "Armas.h"
 
-class Malignas :public Pociones, virtual public Armas {
+class Malignas : virtual public Pociones, virtual public Armas {
 	 public:
 		 Malignas();
 		 Malignas(bool valido, int precio, int danio);

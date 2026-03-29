@@ -3,7 +3,7 @@
 #define ARMAS_H
 #include "Objetos.h"
 #include "Encantamientos.h"
-class Armas : public Objetos {
+class Armas : virtual public Objetos {
 	private:
 		int danio;
 	public:

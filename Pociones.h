@@ -2,7 +2,7 @@
 #ifndef POCIONES_H
 #define POCIONES_H
 #include "Objetos.h"
-class Pociones :public Objetos {
+class Pociones : virtual public Objetos {
 	private:
 		bool valido;
 		int precio;

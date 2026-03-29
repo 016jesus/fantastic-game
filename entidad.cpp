@@ -22,6 +22,14 @@ Skins* Entidad::getSkin()
 {
 	return this->skin.get();
 }
+Position Entidad::getPosition() const
+{
+	return this->position;
+}
+void Entidad::setPosition(const Position& pos)
+{
+	this->position = pos;
+}
 float Entidad::distanciaRelativa(float x2, float y2)
 {
 	float x1 = skin->getSprite()->getPosition().x;

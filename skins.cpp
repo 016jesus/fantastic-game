@@ -1,6 +1,3 @@
-#ifndef SKINS_CPP
-#define SKINS_CPP
-
 #include "skins.h"
 #include <fstream>
 
@@ -34,4 +31,3 @@ void Skins::setSkinFiles(string archivo)
 
 	}
 }
-#endif
