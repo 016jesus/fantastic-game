@@ -1,5 +1,6 @@
 #include "entidad.h"
 #include<iostream>
+#include<cmath>
 Entidad::Entidad(){
 
 }

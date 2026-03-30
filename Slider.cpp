@@ -14,12 +14,12 @@ void Slider::setRange(float minV, float maxV) {
     minVal = minV;
     maxVal = maxV;
     // Clamp current value al nuevo rango
-    currentVal = std::clamp(currentVal, minVal, maxVal);
+    currentVal = std::max(minVal, std::min(currentVal, maxVal));
     updateThumbPosition();
 }
 
 void Slider::setValue(float value) {
-    currentVal = std::clamp(value, minVal, maxVal);
+    currentVal = std::max(minVal, std::min(value, maxVal));
     updateThumbPosition();
 }
 
@@ -149,7 +149,7 @@ void Slider::updateThumbPosition() {
 void Slider::updateValueFromMouse(float mouseX) {
     sf::FloatRect tb = track.getGlobalBounds();
     float norm = (mouseX - tb.left) / tb.width;
-    norm       = std::clamp(norm, 0.f, 1.f);
+    norm       = std::max(0.f, std::min(norm, 1.f));
     float newVal = minVal + norm * (maxVal - minVal);
     if (std::abs(newVal - currentVal) > 1e-6f) {
         currentVal = newVal;

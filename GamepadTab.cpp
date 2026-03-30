@@ -81,7 +81,8 @@ void GamepadTab::buildLayout() {
     constexpr float ROW_HEIGHT  = 18.f;
 
     for (std::size_t i = 0; i < GAMEPAD_ACTION_ORDER.size(); ++i) {
-        const auto& [actionId, actionLabel] = GAMEPAD_ACTION_ORDER[i];
+        const std::string& actionId    = GAMEPAD_ACTION_ORDER[i].first;
+        const std::string& actionLabel = GAMEPAD_ACTION_ORDER[i].second;
         const GamepadBinding* b = gm.getBinding(actionId);
 
         std::string text = actionLabel + " -> ";

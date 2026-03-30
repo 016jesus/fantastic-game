@@ -22,7 +22,7 @@ class Protagonista : public Combate, public Dociles, public Inventario {
 
     public:
         //metodos propios de la clase
-        Protagonista(int vida, int velocidad, string nombre, int dinero);
+        Protagonista(int vida, int velocidad, std::string nombre, int dinero);
         int getDinero();
         void setDinero(int dinero);
 
@@ -38,14 +38,14 @@ class Protagonista : public Combate, public Dociles, public Inventario {
         void updateAnimation(float deltaTime);
 
         //metodos clase inventario
-        string actualizarInventario(bool validez, Objetos* objeto) override;
+        std::string actualizarInventario(bool validez, Objetos* objeto) override;
         Skins* showInventario() override;
 
         //metodos clase animaciones
-        void movimientos(Keyboard* key) override;
+        void movimientos(sf::Keyboard* key) override;
 
         //metodos clase combate
-        Sprite* barraDeVida() override;
+        sf::Sprite* barraDeVida() override;
         int ataque(Armas* arma) override;
 };
 

@@ -37,7 +37,7 @@ void ScrollablePanel::scrollBy(float delta) {
 }
 
 void ScrollablePanel::scrollTo(float targetY) {
-    scrollY = std::clamp(targetY, 0.f, maxScroll());
+    scrollY = std::max(0.f, std::min(targetY, maxScroll()));
     updateWidgetPositions();
     updateScrollbar();
 }

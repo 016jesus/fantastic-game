@@ -10,7 +10,7 @@ public:
 	Enemigos(); 
 	Enemigos(int vida, int velocidad); 
 	virtual int getTipo() = 0; 
-	Sprite* barraDeVida() override;
+	sf::Sprite* barraDeVida() override;
 }; 
 #endif 
 //clase abstracta enemigos 

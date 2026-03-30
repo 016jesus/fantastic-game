@@ -27,7 +27,7 @@ public:
     int getTipo() override;
 
     // Animaciones interface — no-op para enemigos controlados por IA.
-    void movimientos(Keyboard* key) override { (void)key; }
+    void movimientos(sf::Keyboard* key) override { (void)key; }
 
     // Combate interface — default de emergencia (retorna 0).
     int ataque(Armas* arma) override { (void)arma; return 0; }

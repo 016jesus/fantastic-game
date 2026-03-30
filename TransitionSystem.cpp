@@ -55,7 +55,7 @@ void TransitionSystem::draw(sf::RenderWindow& window) {
     if (!active) return;
 
     const float t     = elapsed / duration;
-    const float tClamped = std::clamp(t, 0.f, 1.f);
+    const float tClamped = std::max(0.f, std::min(t, 1.f));
 
     float alpha = 0.f;
     if (currentType == Type::FadeToBlack) {

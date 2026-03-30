@@ -11,6 +11,7 @@ class Malignas : virtual public Pociones, virtual public Armas {
 		 ~Malignas();
 		 int efecto()override;
 		 int getTamanio()override;
+		 int getTipo()override;
 };
 
 

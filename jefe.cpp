@@ -367,6 +367,6 @@ int Jefe::ataque(Armas* /*arma*/) {
 // ---------------------------------------------------------------------------
 // barraDeVida — stub para satisfacer la interfaz; la barra real es hpBarBg/Fill.
 // ---------------------------------------------------------------------------
-Sprite* Jefe::barraDeVida() {
-    return &debugRect;  // cumple la firma; la barra visual se dibuja en draw()
+sf::Sprite* Jefe::barraDeVida() {
+    return nullptr;  // la barra visual se dibuja en draw() directamente
 }

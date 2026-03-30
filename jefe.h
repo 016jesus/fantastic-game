@@ -47,7 +47,7 @@ public:
 
     // Combate interface (virtuales puros heredados de Combate via Enemigos)
     int ataque(Armas* arma) override;
-    Sprite* barraDeVida() override;
+    sf::Sprite* barraDeVida() override;
 
     // Position
     float getX() const;
@@ -55,7 +55,7 @@ public:
     sf::FloatRect getBounds() const;
 
     // Animaciones interface — no-op: el boss se mueve por IA, no por teclado
-    void movimientos(Keyboard* key) override { (void)key; }
+    void movimientos(sf::Keyboard* key) override { (void)key; }
 
 private:
     EnemyState state = EnemyState::Idle;

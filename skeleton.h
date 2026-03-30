@@ -54,7 +54,7 @@ public:
     // barraDeVida() retorna Sprite* (sin sf:: para coincidir con la firma
     // de la clase base Combate que usa nombres SFML sin calificar).
     int ataque(Armas* arma) override;
-    Sprite* barraDeVida() override { return nullptr; }
+    sf::Sprite* barraDeVida() override { return nullptr; }
 
     // --- Position / Bounds ---
     float getX() const;

@@ -8,3 +8,6 @@ int Malignas::efecto() {
 int Malignas::getTamanio() {
 	return 1;
 }
+int Malignas::getTipo() {
+	return 3;
+}

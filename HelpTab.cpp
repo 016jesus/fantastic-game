@@ -165,7 +165,7 @@ void HelpTab::handleEvent(const sf::Event& event) {
 
     if (event.type == sf::Event::MouseWheelScrolled) {
         scrollOffset -= event.mouseWheelScroll.delta * 20.f;
-        scrollOffset  = std::clamp(scrollOffset, 0.f, maxScroll);
+        scrollOffset  = std::max(0.f, std::min(scrollOffset, maxScroll));
     }
 
     if (event.type == sf::Event::KeyPressed) {

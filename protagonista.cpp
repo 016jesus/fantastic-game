@@ -121,11 +121,11 @@ void Protagonista::removeFromInventario(int index)
         inventario.erase(inventario.begin() + index);
 }
 
-void Protagonista::movimientos(Keyboard* key)
+void Protagonista::movimientos(sf::Keyboard* key)
 {
     bool moving = false;
 
-    if (key->isKeyPressed(Keyboard::A)) {
+    if (key->isKeyPressed(sf::Keyboard::A)) {
         if (getSkin()) {
             getSkin()->getSprite()->move(-static_cast<float>(getVelocidad()), 0.f);
         }
@@ -136,7 +136,7 @@ void Protagonista::movimientos(Keyboard* key)
         }
     }
 
-    if (key->isKeyPressed(Keyboard::D)) {
+    if (key->isKeyPressed(sf::Keyboard::D)) {
         if (getSkin()) {
             getSkin()->getSprite()->move(static_cast<float>(getVelocidad()), 0.f);
         }
@@ -152,14 +152,14 @@ void Protagonista::movimientos(Keyboard* key)
         if (skinMap.count("idle")) skinMap["idle"]->playAnimation("idle");
     }
 
-    if (key->isKeyPressed(Keyboard::Space)) {
+    if (key->isKeyPressed(sf::Keyboard::Space)) {
         if (activeAnim != "jump") {
             activeAnim = "jump";
             if (skinMap.count("jump")) skinMap["jump"]->playAnimation("jump");
         }
     }
 
-    if (key->isKeyPressed(Keyboard::J)) {
+    if (key->isKeyPressed(sf::Keyboard::J)) {
         if (activeAnim != "attack") {
             activeAnim = "attack";
             if (skinMap.count("attack")) skinMap["attack"]->playAnimation("attack");
@@ -176,26 +176,26 @@ void Protagonista::movimientos(Keyboard* key)
     }
 }
 
-Sprite* Protagonista::barraDeVida()
+sf::Sprite* Protagonista::barraDeVida()
 {
-    IntRect cuadro;
+    sf::IntRect cuadro;
     healthBarTexture.loadFromFile("Sprite/MONSTER/ICONS/helth_bar.png");
     healthBarSprite.setTexture(healthBarTexture);
 
     if (this->getVida() == 5) {
-        cuadro = IntRect(0, 0, 32, 32);
+        cuadro = sf::IntRect(0, 0, 32, 32);
     }
     else if (this->getVida() == 4) {
-        cuadro = IntRect(32, 0, 32, 32);
+        cuadro = sf::IntRect(32, 0, 32, 32);
     }
     else if (this->getVida() == 3) {
-        cuadro = IntRect(64, 0, 32, 32);
+        cuadro = sf::IntRect(64, 0, 32, 32);
     }
     else if (this->getVida() == 2) {
-        cuadro = IntRect(0, -32, 32, 32);
+        cuadro = sf::IntRect(0, -32, 32, 32);
     }
     else if (this->getVida() <= 1) {
-        cuadro = IntRect(32, -32, 32, 32);
+        cuadro = sf::IntRect(32, -32, 32, 32);
     }
 
     healthBarSprite.setTextureRect(cuadro);

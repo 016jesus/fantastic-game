@@ -16,7 +16,6 @@
 #include "DebugOverlay.h"
 #include "InputBuffer.h"
 #include <SFML/Graphics.hpp>
-#include <optional>
 #include <string>
 #include <vector>
 
@@ -53,7 +52,7 @@ private:
     bool attackPressed = false;  // true mientras J/Espacio esté pulsado
 
     // Boss (Sala del Jefe, sección 2)
-    std::optional<Jefe> boss;
+    std::unique_ptr<Jefe> boss;
     bool bossDefeated = false;
     sf::Text victoryText;
 

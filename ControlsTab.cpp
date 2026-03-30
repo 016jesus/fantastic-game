@@ -50,7 +50,8 @@ void ControlsTab::buildLayout() {
     bindWidgets.reserve(ACTION_ORDER.size());
 
     for (std::size_t i = 0; i < ACTION_ORDER.size(); ++i) {
-        const auto& [actionId, actionLabel] = ACTION_ORDER[i];
+        const std::string& actionId    = ACTION_ORDER[i].first;
+        const std::string& actionLabel = ACTION_ORDER[i].second;
 
         KeyBindWidget w;
         w.setFont(font, 10);

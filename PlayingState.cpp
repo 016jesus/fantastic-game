@@ -365,7 +365,7 @@ void PlayingState::spawnEnemies() {
 
     if (seccionManager.currentIndex() == 2) {
         // Sección 2: Sala del Jefe — instanciar boss en el centro del mapa
-        boss.emplace(256.f, groundY - 48.f);
+        boss = std::make_unique<Jefe>(256.f, groundY - 48.f);
         bossDefeated = false;
     } else {
         // Secciones 0 y 1: tres Skeletons sobre el suelo
@@ -394,7 +394,7 @@ void PlayingState::updateCombat(float deltaTime) {
     }
 
     // --- Boss (Sala del Jefe, sección 2) ---
-    if (boss.has_value() && !bossDefeated) {
+    if (boss && !bossDefeated) {
         boss->update(deltaTime, player);
 
         // Ataque normal del boss
@@ -445,7 +445,7 @@ void PlayingState::updateCombat(float deltaTime) {
         float py = playerSpritePos.y + playerHalfH;
 
         // Atacar al boss si está activo
-        if (boss.has_value() && !bossDefeated) {
+        if (boss && !bossDefeated) {
             sf::FloatRect bb = boss->getBounds();
             float bx   = bb.left + bb.width  * 0.5f;
             float by   = bb.top  + bb.height * 0.5f;
@@ -674,7 +674,7 @@ void PlayingState::render(sf::RenderWindow& window) {
     drawEnemies(window);
 
     // Dibuja el boss si está activo en esta sección
-    if (boss.has_value() && !bossDefeated) {
+    if (boss && !bossDefeated) {
         boss->draw(window);
     }
 

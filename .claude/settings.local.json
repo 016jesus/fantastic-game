@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls \"/c/Users/jesus/Documents/Unillanos/2do/c++ proyects/proyecto1/SFML/lib/\"*.a)",
+      "Bash(ls \"/c/Users/jesus/Documents/Unillanos/2do/c++ proyects/proyecto1/\"*.dll)",
+      "Bash(ls \"/c/Users/jesus/Documents/Unillanos/2do/c++ proyects/proyecto1/SFML/bin/\"*.dll)"
+    ]
+  }
+}

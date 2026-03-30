@@ -129,7 +129,7 @@ void TutorialTab::buildPages() {
 // ---------------------------------------------------------------------------
 void TutorialTab::showPage(int index) {
     if (pages.empty()) return;
-    currentPage = std::clamp(index, 0, static_cast<int>(pages.size()) - 1);
+    currentPage = std::max(0, std::min(index, static_cast<int>(pages.size()) - 1));
 
     const auto& page = pages[static_cast<std::size_t>(currentPage)];
 

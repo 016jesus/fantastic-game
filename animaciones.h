@@ -5,7 +5,7 @@
 #include <SFML/Graphics.hpp>
 class Animaciones {
 	public:
-		virtual void movimientos(Keyboard* key) = 0;
+		virtual void movimientos(sf::Keyboard* key) = 0;
 };	
 
 #endif 

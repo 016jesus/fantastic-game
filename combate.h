@@ -3,10 +3,11 @@
 #ifndef COMBATE_H
 #define COMBATE_H
 #include "Armas.h"
+#include <SFML/Graphics.hpp>
 
 class Combate{
 	public:
-		virtual Sprite* barraDeVida() = 0;
+		virtual sf::Sprite* barraDeVida() = 0;
 		virtual int ataque(Armas* arma) = 0;
 };
 

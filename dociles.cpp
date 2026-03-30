@@ -1,11 +1,13 @@
 #include "dociles.h"
 
-Dociles::Dociles(int vida, int velocidad, string nombre): Entidad(vida, velocidad){}
+Dociles::Dociles(int vida, int velocidad, std::string nombre): Entidad(vida, velocidad){
+	this->nombre = nombre;
+}
 
-string Dociles::getNombre()
+std::string Dociles::getNombre()
 {
 	return this->nombre;
 }
-void Dociles::setNombre(string nombre) {
+void Dociles::setNombre(std::string nombre) {
 	this->nombre = nombre;
 }
