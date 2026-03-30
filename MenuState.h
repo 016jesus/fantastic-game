@@ -3,7 +3,9 @@
 #define MENU_STATE_H
 #include "IGameState.h"
 #include "SaveSystem.h"
+#include "OptionsState.h"
 #include <SFML/Graphics.hpp>
+#include <memory>
 #include <string>
 
 class MenuState : public IGameState {
@@ -36,8 +38,12 @@ private:
     bool hasSaveGame = false;
     sf::Text continueText;
 
+    // Hint de acceso rápido a Opciones (tecla O)
+    sf::Text optionsHint;
+
     void setupUI(const sf::Vector2u& windowSize);
     void startGame();
     void updateGenderHighlight();   // reposiciona el rectángulo según selección
+    std::unique_ptr<OptionsState> createOptionsState();
 };
 #endif

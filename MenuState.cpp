@@ -3,6 +3,13 @@
 // Forward declaration de PlayingState para evitar include circular en el header.
 // La inclusión completa sólo se necesita en startGame().
 #include "PlayingState.h"
+#include "OptionsState.h"
+#include "GraphicsTab.h"
+#include "SoundTab.h"
+#include "ControlsTab.h"
+#include "HelpTab.h"
+#include "TutorialTab.h"
+#include "CreditsTab.h"
 #include <memory>
 
 MenuState::MenuState(GameStateManager* gsm) {
@@ -40,6 +47,24 @@ void MenuState::onEnter() {
         continueText.setOrigin(cb.left + cb.width / 2.f,
                                cb.top  + cb.height / 2.f);
         continueText.setPosition(cx, cy + 100.f);
+    }
+
+    // --- Hint de acceso a Opciones (tecla O) ---
+    // Se posiciona ~20 px debajo del último elemento del menú (cy+100 si hay
+    // save, cy+80 si no lo hay) para no solaparse con ningún texto existente.
+    if (fontLoaded) {
+        const float cx = 256.f;
+        const float cy = 128.f;
+        const float baseY = hasSaveGame ? cy + 100.f : cy + 80.f;
+
+        optionsHint.setFont(font);
+        optionsHint.setString("O: Opciones");
+        optionsHint.setCharacterSize(11u);
+        optionsHint.setFillColor(sf::Color(160, 160, 160));
+        sf::FloatRect ob = optionsHint.getLocalBounds();
+        optionsHint.setOrigin(ob.left + ob.width / 2.f,
+                              ob.top  + ob.height / 2.f);
+        optionsHint.setPosition(cx, baseY + 20.f);
     }
 }
 
@@ -192,6 +217,11 @@ void MenuState::handleEvent(const sf::Event& event) {
                 updateGenderHighlight();
                 break;
 
+            // Tecla O → abrir pantalla de Opciones
+            case sf::Keyboard::O:
+                gsm->replace(createOptionsState());
+                break;
+
             default:
                 break;
         }
@@ -228,6 +258,9 @@ void MenuState::render(sf::RenderWindow& window) {
         if (hasSaveGame) {
             window.draw(continueText);
         }
+
+        // Hint de acceso a Opciones (siempre visible si la fuente cargó)
+        window.draw(optionsHint);
     }
     // Fallback sin fuente: SFML no puede dibujar Text sin fuente válida
 }
@@ -255,4 +288,20 @@ void MenuState::startGame() {
     const std::string genderStr =
         (selectedGender == Gender::Male) ? "male" : "female";
     gsm->replace(std::make_unique<PlayingState>(gsm, playerName, genderStr));
+}
+
+// ---------------------------------------------------------------------------
+// createOptionsState: construye un OptionsState con todas las pestañas
+// disponibles inyectadas en orden. fromPause=false porque se accede desde el
+// menú principal, no desde la pausa.
+// ---------------------------------------------------------------------------
+std::unique_ptr<OptionsState> MenuState::createOptionsState() {
+    auto opts = std::make_unique<OptionsState>(gsm, false);
+    opts->addTab(std::make_unique<GraphicsTab>(font));
+    opts->addTab(std::make_unique<SoundTab>(font));
+    opts->addTab(std::make_unique<ControlsTab>(font));
+    opts->addTab(std::make_unique<HelpTab>(font));
+    opts->addTab(std::make_unique<TutorialTab>(font));
+    opts->addTab(std::make_unique<CreditsTab>(font));
+    return opts;
 }

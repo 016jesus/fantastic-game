@@ -93,6 +93,19 @@ void PlayingState::onEnter() {
 
     // Muestra el nombre de la sección inicial durante 3 segundos
     seccionHUD.showName(seccionManager.current()->getNombre());
+
+    // Inicializar sistemas globales con la fuente cargada
+    NotificationSystem::getInstance().setFont(font);
+    DebugOverlay::getInstance().setFont(font);
+
+    // Registrar líneas de debug (lambdas que capturan this)
+    auto& dbg = DebugOverlay::getInstance();
+    dbg.registerLine("HP",      [this]{ return std::to_string(player.getVida()) + "/100"; });
+    dbg.registerLine("Monedas", [this]{ return std::to_string(player.getDinero()); });
+    dbg.registerLine("Enemigos",[this]{ return std::to_string(enemies.size()); });
+    dbg.registerLine("Seccion", [this]{
+        return seccionManager.current() ? seccionManager.current()->getNombre() : "?";
+    });
 }
 
 // ---------------------------------------------------------------------------
@@ -119,6 +132,13 @@ void PlayingState::setupNpcsAndChests() {
 // activos antes de procesar acciones globales (pausa, salto).
 // ---------------------------------------------------------------------------
 void PlayingState::handleEvent(const sf::Event& event) {
+    // El DebugOverlay escucha todos los eventos (toggle con F3)
+    DebugOverlay::getInstance().handleEvent(event);
+
+    // Registrar pulsaciones en el buffer de combos
+    if (event.type == sf::Event::KeyPressed)
+        InputBuffer::getInstance().recordKey(event.key.code, 0.f);
+
     if (event.type != sf::Event::KeyPressed) return;
 
     // --- Prioridad 1: diálogo activo — ENTER o la tecla de interacción avanza la línea ---
@@ -252,6 +272,11 @@ void PlayingState::update(float deltaTime) {
 
     // Actualiza el temporizador de fade del nombre de sección
     seccionHUD.update(deltaTime);
+
+    // Actualizar sistemas técnicos globales
+    InputBuffer::getInstance().update(deltaTime);
+    DebugOverlay::getInstance().update(deltaTime);
+    NotificationSystem::getInstance().update(deltaTime);
 }
 
 // ---------------------------------------------------------------------------
@@ -391,6 +416,7 @@ void PlayingState::updateCombat(float deltaTime) {
         // Comprobar si el boss murió
         if (boss->isDead()) {
             bossDefeated = true;
+            NotificationSystem::getInstance().success("!Jefe derrotado! +500 EXP");
         }
     }
 
@@ -399,10 +425,12 @@ void PlayingState::updateCombat(float deltaTime) {
         enemy.update(deltaTime, player);
 
         if (enemy.canAttackPlayer(player)) {
-            int newVida = player.getVida() - static_cast<int>(enemy.getAttackDamage());
+            int damage  = static_cast<int>(enemy.getAttackDamage());
+            int newVida = player.getVida() - damage;
             if (newVida < 0) newVida = 0;
             player.setVida(newVida);
             enemy.resetAttackCooldown();
+            NotificationSystem::getInstance().warning("-" + std::to_string(damage) + " HP");
         }
     }
 
@@ -447,6 +475,13 @@ void PlayingState::updateCombat(float deltaTime) {
 
     if (!attackKeyDown) {
         attackPressed = false;
+    }
+
+    // Notificar por cada skeleton que acaba de morir antes de borrarlo
+    for (const auto& enemy : enemies) {
+        if (enemy.isDead()) {
+            NotificationSystem::getInstance().success("+20 EXP");
+        }
     }
 
     enemies.erase(
@@ -691,4 +726,8 @@ void PlayingState::render(sf::RenderWindow& window) {
         pauseText.setPosition(256.f, 128.f);
         window.draw(pauseText);
     }
+
+    // Sistemas técnicos — se dibujan encima de absolutamente todo
+    DebugOverlay::getInstance().draw(window);
+    NotificationSystem::getInstance().draw(window);
 }
