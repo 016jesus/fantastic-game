@@ -1,37 +1,44 @@
-#ifndef SKINS_CPP
-#define SKINS_CPP
-
 #include "skins.h"
-#include <fstream>
 
-Skins::Skins(IntRect* dimension, Texture *textura):
-    dimension(dimension), sprite(new Sprite(*textura)){}
-
-
-void Skins::setDimension(IntRect* dimension)
-{
-    this->dimension = dimension;
+void Skins::loadTexture(const std::string& path) {
+    texture = &ResourceManager::getInstance().getTexture(path);
+    sprite.setTexture(*texture);
 }
 
-Sprite* Skins::getSprite()
-{
-    return this->sprite;
+void Skins::addAnimation(const std::string& name,
+                         int frameWidth, int frameHeight,
+                         int row, int frameCount,
+                         float frameDuration, bool loop) {
+    Animation anim;
+    anim.name = name;
+    anim.loop = loop;
+    anim.frames.reserve(static_cast<std::size_t>(frameCount));
+
+    for (int col = 0; col < frameCount; ++col) {
+        AnimationFrame frame;
+        frame.rect = sf::IntRect(col * frameWidth,
+                                 row * frameHeight,
+                                 frameWidth,
+                                 frameHeight);
+        frame.duration = frameDuration;
+        anim.frames.push_back(frame);
+    }
+
+    animSystem.addAnimation(name, anim);
 }
 
-vector<string>* Skins::getSkinFiles(){
-    return &this->skinFiles;
+void Skins::playAnimation(const std::string& name) {
+    animSystem.play(name);
 }
 
-void Skins::setSkinFiles(string archivo)
-{
-	ifstream archivoRutas(archivo);
-	if (archivoRutas.is_open()) {
-		string ruta;
-		while (getline(archivoRutas, ruta)) {
-			this->getSkinFiles()->push_back(ruta);
-		}
-		archivoRutas.close();
-
-	}
+void Skins::update(float deltaTime) {
+    animSystem.update(deltaTime, sprite);
 }
-#endif
+
+sf::Sprite* Skins::getSprite() {
+    return &sprite;
+}
+
+AnimationSystem& Skins::getAnimSystem() {
+    return animSystem;
+}

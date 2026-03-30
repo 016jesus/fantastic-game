@@ -1,5 +1,3 @@
-#ifndef MALIGNAS_CPP
-#define MALIGNAS_CPP
 #include "Malignas.h"
 Malignas::Malignas(){}
 Malignas::Malignas(bool valido, int precio, int danio): Pociones(valido, precio), Armas(danio){}
@@ -10,5 +8,3 @@ int Malignas::efecto() {
 int Malignas::getTamanio() {
 	return 1;
 }
-
-#endif

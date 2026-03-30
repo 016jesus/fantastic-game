@@ -7,9 +7,8 @@ class Goblin: public Normales{
     public:
         Goblin();
         ~Goblin();
-        Goblin operator -=(Goblin &obj, Protagonista &protagonista);
-
-
 };
+
+Goblin& operator-=(Goblin& obj, Protagonista& protagonista);
 
 #endif

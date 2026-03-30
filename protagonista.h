@@ -3,32 +3,50 @@
 #include "Objetos.h"
 #include "inventario.h"
 #include "combate.h"
+#include <memory>
+#include <unordered_map>
 #ifndef PROTAGONISTA_H
 #define PROTAGONISTA_H
 
 class Protagonista : public Combate, public Dociles, public Inventario {
-	private:
-		int dinero;
-		vector <Objetos*> inventario;
+    private:
+        int dinero;
+        std::vector<std::unique_ptr<Objetos>> inventario;
+        sf::Sprite healthBarSprite;
+        sf::Texture healthBarTexture;
 
-	public:
-		//metodos propios de la clase
-		Protagonista(int vida, int velocidad, string nombre, int dinero);
-		int getDinero();
-		void setDinero(int dinero);
+        // One Skins object per animation (separate sprite-sheet files).
+        std::unordered_map<std::string, std::unique_ptr<Skins>> skinMap;
+        // Name of the currently active animation.
+        std::string activeAnim;
 
-		//metodos clase inventario
-		string actualizarInventario(bool validez, Objetos* objeto) override;
-		Skins* showInventario() override;
+    public:
+        //metodos propios de la clase
+        Protagonista(int vida, int velocidad, string nombre, int dinero);
+        int getDinero();
+        void setDinero(int dinero);
 
-		//metodos clase animaciones
+        // Acceso de solo lectura al inventario (para overlays de UI)
+        const std::vector<std::unique_ptr<Objetos>>& getInventario() const { return inventario; }
+        // Elimina un ítem del inventario por índice (0-based)
+        void removeFromInventario(int index);
 
-		void movimientos(Keyboard* key)override;
+        // Loads all protagonist sprite sheets and registers their animations.
+        void loadSprites();
 
-		//metodos clase combate
-		Sprite* barraDeVida() override;
-		int ataque(Armas* arma) override;
-		
+        // Advances the active animation by deltaTime seconds.
+        void updateAnimation(float deltaTime);
+
+        //metodos clase inventario
+        string actualizarInventario(bool validez, Objetos* objeto) override;
+        Skins* showInventario() override;
+
+        //metodos clase animaciones
+        void movimientos(Keyboard* key) override;
+
+        //metodos clase combate
+        Sprite* barraDeVida() override;
+        int ataque(Armas* arma) override;
 };
 
 #endif

@@ -1,5 +1,3 @@
-#ifndef ARMAELEMENTAL_CPP
-#define ARMAELEMENTAL_CPP
 #include "armaelemental.h"
 ArmaElemental::ArmaElemental(string bonus): bonus(bonus){}
 string ArmaElemental::getBonus() {
@@ -8,6 +6,3 @@ string ArmaElemental::getBonus() {
 void ArmaElemental::setBonus(string bonus) {
 	this->bonus = bonus;
 }
-
-
-#endif

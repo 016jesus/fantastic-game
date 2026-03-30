@@ -1,5 +1,3 @@
-#ifndef FILO_CPP
-#define FILO_CPP
 #include "Filo.h"
 Filo::Filo(){}
 Filo::Filo(string descripcion, int aumento): Bonus(descripcion), aumento(aumento){}
@@ -15,5 +13,3 @@ int Filo::getTipo() {
 string Filo::atributo(){
 	return "Afila armas";
 }
-
-#endif

@@ -1,5 +1,3 @@
-#ifndef ENVENENAMIENTO_CPP
-#define ENVENENAMIENTO_CPP
 #include "Envenenamiento.h"
 Envenenamiento::Envenenamiento(){}
 Envenenamiento::Envenenamiento(string descripcion, int efecto): Bonus(descripcion), efecto(efecto){}
@@ -13,6 +11,3 @@ string Envenenamiento::atributo(){
 	return "Envenena";
 }
 //virtual int tipoRandom();
-
-
-#endif

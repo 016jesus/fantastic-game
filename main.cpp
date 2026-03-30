@@ -1,71 +1,40 @@
-#include "protagonista.h"
-#include "jefe.h"
+#include "GameStateManager.h"
+#include "MenuState.h"
 #include <SFML/Graphics.hpp>
-#include <SFML/Window/Event.hpp>
-
-using namespace sf;
-using namespace std;
-
-string getNameFromUI(RenderWindow* window, Event &evento);
 
 int main() {
-    RenderWindow window(VideoMode(512, 256), "The legend of tilin");
-    Protagonista player(100, 5, "suat", 0);
-    Font f;
-    f.loadFromFile("minecraft.otf");
-    string name;
+    sf::RenderWindow window(sf::VideoMode(512, 256), "The Legend of Tilin",
+                            sf::Style::Titlebar | sf::Style::Close);
+    window.setFramerateLimit(60);
+
+    GameStateManager gsm;
+    gsm.push(std::make_unique<MenuState>(&gsm));
+
+    sf::Clock clock;
 
     while (window.isOpen()) {
-        Event evento;
-        while (window.pollEvent(evento)) {
-            if (evento.type == Event::Closed) {
+        float deltaTime = clock.restart().asSeconds();
+        // Cap de delta para evitar espirales de muerte ante lag o breakpoints
+        if (deltaTime > 0.05f) deltaTime = 0.05f;
+
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
                 window.close();
-            }
-            if (Keyboard::isKeyPressed(Keyboard::D)) {
-                //sf::IntRect derecho(120, 0, 120.0, 80.0);
-                //caballero.setTextureRect(derecho);
-                //caballero.move(5,0);
-            }
-            if (Keyboard::isKeyPressed(Keyboard::A)) {
-                /* sf::IntRect derecho(120, 0, 120.0, 80.0);
-                caballero.setTextureRect(derecho);
-                caballero.move(-5, 0);*/
-            }
-        
-        
+            if (!gsm.isEmpty())
+                gsm.handleEvent(event);
         }
 
-        window.clear(Color::White);
-        
-        window.draw(Text(name, f, 30u));
+        gsm.update(deltaTime);
+
+        window.clear(sf::Color::Black);
+        gsm.render(window);
         window.display();
+
+        // Si el stack queda vacío (todos los estados salieron) se cierra la ventana
+        if (gsm.isEmpty())
+            window.close();
     }
 
     return 0;
-}
-
-string getNameFromUI(RenderWindow* window, Event &evento) {
-    Text t;
-    Font f;
-    
-    f.loadFromFile("Minecraft.ttf");
-    t.setFont(f);
-    t.setString("Hola amigo, por favor ingresa tu nombre: ");
-    t.setScale(4, 4);
-    window->draw(t);
-    string name;
-
-    if (evento.type == Event::TextEntered) { 
-        if (evento.text.unicode < 128) {
-            char entrada = static_cast<char>(evento.text.unicode);
-            if (entrada == '\b' && !name.empty()) {
-                name.pop_back();
-            }
-            else if (entrada != '\b') {
-                name += entrada;
-            }
-        }
-    }
-
-    return name;
 }
