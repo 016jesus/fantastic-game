@@ -15,6 +15,7 @@ add_executable(FantasticGame ${SOURCES})
 
 target_include_directories(FantasticGame PRIVATE
     ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/SFML/include
 )
 
