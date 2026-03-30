@@ -1,0 +1,18 @@
+#pragma once
+#ifndef MALIGNAS_H
+#define MALIGNAS_H
+#include "items/Pociones.h"
+#include "items/Armas.h"
+
+class Malignas : virtual public Pociones, virtual public Armas {
+	 public:
+		 Malignas();
+		 Malignas(bool valido, int precio, int danio);
+		 ~Malignas();
+		 int efecto()override;
+		 int getTamanio()override;
+		 int getTipo()override;
+};
+
+
+#endif

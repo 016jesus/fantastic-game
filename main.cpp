@@ -1,7 +1,7 @@
-#include "GameStateManager.h"
-#include "MenuState.h"
-#include "TransitionSystem.h"
-#include "GamepadManager.h"
+#include "core/GameStateManager.h"
+#include "states/MenuState.h"
+#include "core/TransitionSystem.h"
+#include "systems/GamepadManager.h"
 #include <SFML/Graphics.hpp>
 
 int main() {
