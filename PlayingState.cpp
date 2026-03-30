@@ -1,5 +1,6 @@
 #include "PlayingState.h"
 #include "GameStateManager.h"
+#include "KeyBindings.h"
 #include <algorithm>
 #include <cmath>
 
@@ -92,6 +93,19 @@ void PlayingState::onEnter() {
 
     // Muestra el nombre de la sección inicial durante 3 segundos
     seccionHUD.showName(seccionManager.current()->getNombre());
+
+    // Inicializar sistemas globales con la fuente cargada
+    NotificationSystem::getInstance().setFont(font);
+    DebugOverlay::getInstance().setFont(font);
+
+    // Registrar líneas de debug (lambdas que capturan this)
+    auto& dbg = DebugOverlay::getInstance();
+    dbg.registerLine("HP",      [this]{ return std::to_string(player.getVida()) + "/100"; });
+    dbg.registerLine("Monedas", [this]{ return std::to_string(player.getDinero()); });
+    dbg.registerLine("Enemigos",[this]{ return std::to_string(enemies.size()); });
+    dbg.registerLine("Seccion", [this]{
+        return seccionManager.current() ? seccionManager.current()->getNombre() : "?";
+    });
 }
 
 // ---------------------------------------------------------------------------
@@ -118,12 +132,20 @@ void PlayingState::setupNpcsAndChests() {
 // activos antes de procesar acciones globales (pausa, salto).
 // ---------------------------------------------------------------------------
 void PlayingState::handleEvent(const sf::Event& event) {
+    // El DebugOverlay escucha todos los eventos (toggle con F3)
+    DebugOverlay::getInstance().handleEvent(event);
+
+    // Registrar pulsaciones en el buffer de combos
+    if (event.type == sf::Event::KeyPressed)
+        InputBuffer::getInstance().recordKey(event.key.code, 0.f);
+
     if (event.type != sf::Event::KeyPressed) return;
 
-    // --- Prioridad 1: diálogo activo — ENTER o E avanza la línea ---
+    // --- Prioridad 1: diálogo activo — ENTER o la tecla de interacción avanza la línea ---
     if (dialogBox.isOpen()) {
+        auto& kb = KeyBindings::getInstance();
         if (event.key.code == sf::Keyboard::Return ||
-            event.key.code == sf::Keyboard::E)
+            event.key.code == kb.get("interact"))
         {
             dialogBox.advance();
         }
@@ -141,21 +163,16 @@ void PlayingState::handleEvent(const sf::Event& event) {
     }
 
     // --- Acciones globales ---
-    switch (event.key.code) {
-        case sf::Keyboard::Escape:
-            paused = !paused;
-            break;
+    auto& kb = KeyBindings::getInstance();
 
-        case sf::Keyboard::Space:
-            // Saltar sólo si está en el suelo y no hay overlay abierto
-            if (onGround) {
-                velocityY = JUMP_FORCE;
-                onGround  = false;
-            }
-            break;
-
-        default:
-            break;
+    if (event.key.code == kb.get("pause")) {
+        paused = !paused;
+    } else if (event.key.code == kb.get("jump")) {
+        // Saltar sólo si está en el suelo y no hay overlay abierto
+        if (onGround) {
+            velocityY = JUMP_FORCE;
+            onGround  = false;
+        }
     }
 }
 
@@ -168,16 +185,18 @@ void PlayingState::checkInteractions() {
     // No procesar interacciones si algún overlay ya está abierto
     if (dialogBox.isOpen() || inventoryOverlay.isOpen() || shopOverlay.isOpen()) return;
 
-    // Tecla I: toggle del inventario (no requiere proximidad)
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::I)) {
+    auto& kb = KeyBindings::getInstance();
+
+    // Tecla de inventario: toggle (no requiere proximidad)
+    if (kb.isPressed("inventory")) {
         // Usamos un flag para evitar activar múltiples veces por frame
         // La detección real de "pulsación única" se hace en handleEvent;
-        // este bloque es un complemento para la tecla I cuando no hay overlay.
-        // Nota: la tecla I se maneja también en handleEvent → InventoryOverlay.
+        // este bloque es un complemento cuando no hay overlay.
+        // Nota: la acción "inventory" se maneja también en handleEvent → InventoryOverlay.
     }
 
-    // Tecla E: interacción con objetos del mundo
-    if (!sf::Keyboard::isKeyPressed(sf::Keyboard::E)) return;
+    // Tecla de interacción: interacción con objetos del mundo
+    if (!kb.isPressed("interact")) return;
 
     // --- NPC ---
     for (const auto& npc : npcSpots) {
@@ -253,10 +272,16 @@ void PlayingState::update(float deltaTime) {
 
     // Actualiza el temporizador de fade del nombre de sección
     seccionHUD.update(deltaTime);
+
+    // Actualizar sistemas técnicos globales
+    InputBuffer::getInstance().update(deltaTime);
+    DebugOverlay::getInstance().update(deltaTime);
+    NotificationSystem::getInstance().update(deltaTime);
 }
 
 // ---------------------------------------------------------------------------
-// handleMovement: mueve al jugador con A/D o flechas izquierda/derecha
+// handleMovement: mueve al jugador con las teclas configuradas en KeyBindings
+// (por defecto A/D) o las flechas físicas izquierda/derecha.
 // La velocidad del protagonista (getVelocidad()) se usa como píxeles/segundo.
 // ---------------------------------------------------------------------------
 void PlayingState::handleMovement(float deltaTime) {
@@ -266,12 +291,14 @@ void PlayingState::handleMovement(float deltaTime) {
     sf::Sprite* sprite = skin->getSprite();
     if (sprite == nullptr) return;
 
+    auto& kb = KeyBindings::getInstance();
+
     const float speed = static_cast<float>(player.getVelocidad()) * 30.f;
     sf::Vector2f pos  = sprite->getPosition();
     bool moved        = false;
 
     // Movimiento a la izquierda
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) ||
+    if (kb.isPressed("moveLeft") ||
         sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
     {
         pos.x -= speed * deltaTime;
@@ -282,7 +309,7 @@ void PlayingState::handleMovement(float deltaTime) {
     }
 
     // Movimiento a la derecha
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) ||
+    if (kb.isPressed("moveRight") ||
         sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
     {
         pos.x += speed * deltaTime;
@@ -389,6 +416,7 @@ void PlayingState::updateCombat(float deltaTime) {
         // Comprobar si el boss murió
         if (boss->isDead()) {
             bossDefeated = true;
+            NotificationSystem::getInstance().success("!Jefe derrotado! +500 EXP");
         }
     }
 
@@ -397,15 +425,18 @@ void PlayingState::updateCombat(float deltaTime) {
         enemy.update(deltaTime, player);
 
         if (enemy.canAttackPlayer(player)) {
-            int newVida = player.getVida() - static_cast<int>(enemy.getAttackDamage());
+            int damage  = static_cast<int>(enemy.getAttackDamage());
+            int newVida = player.getVida() - damage;
             if (newVida < 0) newVida = 0;
             player.setVida(newVida);
             enemy.resetAttackCooldown();
+            NotificationSystem::getInstance().warning("-" + std::to_string(damage) + " HP");
         }
     }
 
-    // Jugador ataca (tecla J) — detección de borde de pulsación
-    bool attackKeyDown = sf::Keyboard::isKeyPressed(sf::Keyboard::J);
+    // Jugador ataca — detección de borde de pulsación vía KeyBindings
+    auto& kb = KeyBindings::getInstance();
+    bool attackKeyDown = kb.isPressed("attack");
 
     if (attackKeyDown && !attackPressed) {
         attackPressed = true;
@@ -444,6 +475,13 @@ void PlayingState::updateCombat(float deltaTime) {
 
     if (!attackKeyDown) {
         attackPressed = false;
+    }
+
+    // Notificar por cada skeleton que acaba de morir antes de borrarlo
+    for (const auto& enemy : enemies) {
+        if (enemy.isDead()) {
+            NotificationSystem::getInstance().success("+20 EXP");
+        }
     }
 
     enemies.erase(
@@ -688,4 +726,8 @@ void PlayingState::render(sf::RenderWindow& window) {
         pauseText.setPosition(256.f, 128.f);
         window.draw(pauseText);
     }
+
+    // Sistemas técnicos — se dibujan encima de absolutamente todo
+    DebugOverlay::getInstance().draw(window);
+    NotificationSystem::getInstance().draw(window);
 }

@@ -1,5 +1,7 @@
 #include "GameStateManager.h"
 #include "MenuState.h"
+#include "TransitionSystem.h"
+#include "GamepadManager.h"
 #include <SFML/Graphics.hpp>
 
 int main() {
@@ -26,9 +28,12 @@ int main() {
         }
 
         gsm.update(deltaTime);
+        GamepadManager::getInstance().update();
+        TransitionSystem::getInstance().update(deltaTime);
 
         window.clear(sf::Color::Black);
         gsm.render(window);
+        TransitionSystem::getInstance().draw(window);
         window.display();
 
         // Si el stack queda vacío (todos los estados salieron) se cierra la ventana

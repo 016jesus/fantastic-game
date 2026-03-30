@@ -12,6 +12,9 @@
 #include "SeccionManager.h"
 #include "SeccionHUD.h"
 #include "SaveSystem.h"
+#include "NotificationSystem.h"
+#include "DebugOverlay.h"
+#include "InputBuffer.h"
 #include <SFML/Graphics.hpp>
 #include <optional>
 #include <string>
