@@ -106,6 +106,11 @@ private:
     void drawNpcsAndChests(sf::RenderWindow& window);
     float distanceToPlayer(float ox, float oy);
 
+    // Suelo visual
+    sf::Texture       floorTexture;
+    sf::RectangleShape floorShape;
+    bool              floorTextureLoaded = false;
+
     float groundY = 180.f;   // Y del suelo en coordenadas de mundo
     float velocityY = 0.f;
     bool onGround = true;

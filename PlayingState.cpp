@@ -18,6 +18,22 @@ PlayingState::PlayingState(GameStateManager* gsm, const std::string& playerName,
     background.setSize(512.f, 256.f);
     background.setColor(sf::Color(34, 139, 34));
 
+    // --- Suelo visual ---
+    const float floorH = 256.f - groundY;
+    floorShape.setSize(sf::Vector2f(512.f, floorH));
+    floorShape.setPosition(0.f, groundY);
+    floorTextureLoaded = floorTexture.loadFromFile(
+        "Sprites/MONSTER/FONDOS/oak_woods_tileset.png");
+    if (floorTextureLoaded) {
+        floorTexture.setRepeated(true);
+        floorShape.setTexture(&floorTexture);
+        // Muestra la franja superior del tileset (fila de suelo/tierra)
+        // tileada a lo ancho de la ventana
+        floorShape.setTextureRect(sf::IntRect(0, 0, 512, static_cast<int>(floorH)));
+    } else {
+        floorShape.setFillColor(sf::Color(101, 67, 33));  // marrón tierra fallback
+    }
+
     // --- Barra de vida (HUD) ---
     hpBarBg.setSize(sf::Vector2f(150.f, 15.f));
     hpBarBg.setFillColor(sf::Color(139, 0, 0));
@@ -28,10 +44,9 @@ PlayingState::PlayingState(GameStateManager* gsm, const std::string& playerName,
     hpBarFill.setPosition(10.f, 10.f);
 
     // Carga de fuente
-    bool fontLoaded = font.loadFromFile("minecraft.otf");
-    if (!fontLoaded) {
-        font.loadFromFile("Minecraft.ttf");
-    }
+    bool fontLoaded = font.loadFromFile("magical.otf");
+    if (!fontLoaded) fontLoaded = font.loadFromFile("minecraft.otf");
+    if (!fontLoaded) font.loadFromFile("Minecraft.ttf");
 
     hpText.setFont(font);
     hpText.setCharacterSize(10u);
@@ -82,9 +97,13 @@ void PlayingState::onEnter() {
     // no acepta género; se adapta cuando la clase Protagonista lo soporte)
     player.loadSprites();
 
-    // Posición inicial: izquierda del mapa, sobre el suelo
+    // Posición inicial: izquierda del mapa, sobre el suelo.
+    // Se escala el sprite a 2× para que sea visible en la ventana 512×256.
     if (player.getSkin() != nullptr) {
-        player.getSkin()->getSprite()->setPosition(64.f, groundY - 64.f);
+        sf::Sprite* sp = player.getSkin()->getSprite();
+        sp->setScale(2.f, 2.f);
+        const float scaledH = sp->getGlobalBounds().height;
+        sp->setPosition(64.f, groundY - scaledH);
     }
 
     spawnEnemies();
@@ -293,39 +312,38 @@ void PlayingState::handleMovement(float deltaTime) {
 
     auto& kb = KeyBindings::getInstance();
 
-    const float speed = static_cast<float>(player.getVelocidad()) * 30.f;
-    sf::Vector2f pos  = sprite->getPosition();
-    bool moved        = false;
+    const float speed   = static_cast<float>(player.getVelocidad()) * 30.f;
+    const float spriteW = sprite->getLocalBounds().width;
+    const float posY    = sprite->getPosition().y;
 
-    // Movimiento a la izquierda
-    if (kb.isPressed("moveLeft") ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-    {
-        pos.x -= speed * deltaTime;
-        sf::FloatRect bounds = sprite->getLocalBounds();
-        sprite->setOrigin(bounds.width, 0.f);
+    // Rastrear siempre el borde IZQUIERDO del sprite, independientemente del
+    // origen/escala actual (getGlobalBounds siempre devuelve el AABB real).
+    float leftEdge = sprite->getGlobalBounds().left;
+
+    bool movingLeft  = kb.isPressed("moveLeft")  || sf::Keyboard::isKeyPressed(sf::Keyboard::Left);
+    bool movingRight = kb.isPressed("moveRight") || sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
+
+    // Movimiento a la izquierda: voltea el sprite horizontalmente
+    if (movingLeft) {
+        leftEdge -= speed * deltaTime;
+        sprite->setOrigin(spriteW, 0.f);
         sprite->setScale(-1.f, 1.f);
-        moved = true;
     }
 
-    // Movimiento a la derecha
-    if (kb.isPressed("moveRight") ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-    {
-        pos.x += speed * deltaTime;
+    // Movimiento a la derecha: orientación normal
+    if (movingRight) {
+        leftEdge += speed * deltaTime;
         sprite->setOrigin(0.f, 0.f);
         sprite->setScale(1.f, 1.f);
-        moved = true;
     }
 
-    (void)moved;
+    // Limitar borde izquierdo al ancho de la ventana
+    if (leftEdge < 0.f) leftEdge = 0.f;
+    if (leftEdge + spriteW > 480.f) leftEdge = 480.f - spriteW;
 
-    // Limitar X al ancho de la ventana con algo de margen
-    const float spriteW = sprite->getGlobalBounds().width;
-    if (pos.x < 0.f) pos.x = 0.f;
-    if (pos.x + spriteW > 480.f) pos.x = 480.f - spriteW;
-
-    sprite->setPosition(pos);
+    // Convertir borde izquierdo a coordenada de posición según el origen activo
+    float posX = (sprite->getScale().x < 0.f) ? leftEdge + spriteW : leftEdge;
+    sprite->setPosition(posX, posY);
 }
 
 // ---------------------------------------------------------------------------
@@ -669,6 +687,9 @@ void PlayingState::checkSectionTransition() {
 void PlayingState::render(sf::RenderWindow& window) {
     // Fondo de la sección activa (reemplaza el fondo verde fijo)
     seccionManager.current()->drawBackground(window);
+
+    // Suelo visual — franja debajo de groundY
+    window.draw(floorShape);
 
     // Dibuja enemigos Skeleton
     drawEnemies(window);
